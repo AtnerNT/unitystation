@@ -219,7 +219,8 @@ public partial class MatrixManager : MonoBehaviour
 	public static CustomPhysicsHit RayCast(Vector3 Worldorigin,
 		Vector2 direction,
 		float distance,
-		LayerTypeSelection layerMask, LayerMask? Layermask2D = null, Vector3? WorldTo = null)
+		LayerTypeSelection layerMask, LayerMask? Layermask2D = null, Vector3? WorldTo = null,
+		LayerTile[] tileNamesToIgnore = null)
 	{
 
 
@@ -253,7 +254,7 @@ public partial class MatrixManager : MonoBehaviour
 				{
 					Checkhit = mat.MetaTileMap.Raycast(Worldorigin.ToLocal(mat.Matrix), Vector2.zero, distance,
 						layerMask,
-						WorldTo.Value.ToLocal(mat.Matrix));
+						WorldTo.Value.ToLocal(mat.Matrix), tileNamesToIgnore);
 
 
 					if (Checkhit != null)
@@ -801,10 +802,13 @@ public partial class MatrixManager : MonoBehaviour
 
 	///Cross-matrix edition of <see cref="Matrix.IsPassableAt(UnityEngine.Vector3Int,bool)"/>
 	///<inheritdoc cref="Matrix.(UnityEngine.Vector3Int,bool)"/>
-	public static bool IsPassableAtAllMatricesOneTile(Vector3Int worldTarget, bool isServer, bool includingPlayers = true)
+	public static bool IsPassableAtAllMatricesOneTile(Vector3Int worldTarget, bool isServer, bool includingPlayers = true,
+		List<LayerType> excludeLayers = null, List<TileType> excludeTiles = null, GameObject context = null, bool ignoreObjects = false,
+		bool onlyExcludeLayerOnDestination = false)
 	{
 		return AllMatchInternal(mat =>
-			mat.Matrix.IsPassableAtOneMatrixOneTile(WorldToLocalInt(worldTarget, mat), isServer, includingPlayers: includingPlayers));
+			mat.Matrix.IsPassableAtOneMatrixOneTile(WorldToLocalInt(worldTarget, mat), isServer, includingPlayers,
+				excludeLayers, excludeTiles, context, ignoreObjects, onlyExcludeLayerOnDestination));
 	}
 
 	/// <summary>
