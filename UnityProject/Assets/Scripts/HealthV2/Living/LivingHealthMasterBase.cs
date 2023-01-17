@@ -10,8 +10,10 @@ using Mirror;
 using Systems.Atmospherics;
 using Chemistry;
 using Core.Chat;
+using Core.Utils;
 using Health.Sickness;
 using HealthV2.Living.CirculatorySystem;
+using Items.Implants.Organs;
 using JetBrains.Annotations;
 using NaughtyAttributes;
 using Player;
@@ -102,7 +104,11 @@ namespace HealthV2
 		[CanBeNull]
 		public CirculatorySystemBase CirculatorySystem { get; private set; }
 
-		public Brain brain;
+		public Brain brain { get; private set; }
+
+
+		[SyncVar(hook = nameof(SyncBain))]
+		private uint BrainID;
 
 		/// <summary>
 		/// The creature's Respiratory System
@@ -287,11 +293,28 @@ namespace HealthV2
 			//Maybe add feet for blood on boots?
 		};
 
+		public BodyPartType[] UsedZones = new BodyPartType[]
+		{
+			BodyPartType.Head,
+			BodyPartType.Chest,
+			BodyPartType.LeftArm,
+			BodyPartType.RightArm,
+			BodyPartType.LeftLeg,
+			BodyPartType.RightLeg
+		};
+
 		[SerializeField] private GameObject meatProduce;
 		[SerializeField] private GameObject skinProduce;
 		public GameObject MeatProduce => meatProduce;
 		public GameObject SkinProduce => skinProduce;
 
+
+		[NonSerialized]
+		public MultiInterestBool IsMute = new MultiInterestBool(true,
+			MultiInterestBool.RegisterBehaviour.RegisterFalse,
+			MultiInterestBool.BoolBehaviour.ReturnOnFalse);
+
+		//Default is mute yes
 
 		public virtual void Awake()
 		{
@@ -318,10 +341,43 @@ namespace HealthV2
 			healthStateController.SetDNA(new DNAandBloodType());
 
 			if (playerScript == null) return;
-			if (playerScript.mind?.occupation?.DisplayName == "Clown")
+			if (playerScript.Mind?.occupation?.DisplayName == "Clown")
 			{
 				OnTakeDamageType += ClownAbuseScoreEvent;
 			}
+		}
+
+		public void SetBrain(Brain newBrain)
+		{
+			brain = newBrain;
+			if (newBrain == null)
+			{
+
+			}
+			else
+			{
+				BrainID = newBrain.gameObject.NetId();
+			}
+
+		}
+
+		private void SyncBain(uint oldId, uint newID)
+		{
+			BrainID = newID;
+			if (newID is NetId.Empty or NetId.Invalid)
+			{
+				brain = null;
+				return;
+			}
+
+			var spawnedList = CustomNetworkManager.IsServer ? NetworkServer.spawned : NetworkClient.spawned;
+
+
+			if (spawnedList.ContainsKey(newID))
+			{
+				brain = spawnedList[newID].GetComponent<Brain>();
+			}
+
 		}
 
 		//TODO: confusing, make it not depend from the inventory storage Action
@@ -372,6 +428,8 @@ namespace HealthV2
 				}
 			}
 		}
+
+
 
 		private List<BodyPart> TMPUseList = new List<BodyPart>();
 
@@ -472,11 +530,6 @@ namespace HealthV2
 			StopCoroutine(ScreamCooldown());
 		}
 
-		public void Setbrain(Brain _brain)
-		{
-			brain = _brain;
-		}
-
 		[Server]
 		public void SetMaxHealth(float newMaxHealth)
 		{
@@ -515,6 +568,9 @@ namespace HealthV2
 			FireStacksDamage();
 			CalculateRadiationDamage();
 			BleedStacksDamage();
+
+			EnvironmentDamage();
+
 
 			if (IsDead)
 			{
@@ -676,7 +732,7 @@ namespace HealthV2
 				//gradually deplete fire stacks
 				healthStateController.SetFireStacks(fireStacks - 0.1f);
 				//instantly stop burning if there's no oxygen at this location
-				MetaDataNode node = RegisterTile.Matrix.MetaDataLayer.Get(RegisterTile.LocalPositionClient);
+				MetaDataNode node = RegisterTile.Matrix.MetaDataLayer.Get(RegisterTile.LocalPositionClient); //TODO Account for containers
 				if (node.GasMix.GetMoles(Gas.Oxygen) < 1)
 				{
 					healthStateController.SetFireStacks(0);
@@ -698,6 +754,13 @@ namespace HealthV2
 				CirculatorySystem.Bleed(1f * (float) Math.Ceiling(BleedStacks));
 				healthStateController.SetBleedStacks(BleedStacks - 0.1f);
 			}
+		}
+
+		public void EnvironmentDamage()
+		{
+			var ambientGasMix = GasMix.GetEnvironmentalGasMixForObject(this.objectBehaviour);
+
+			ExposePressureTemperature(ambientGasMix.Pressure, ambientGasMix.Temperature);
 		}
 
 		/// <summary>
@@ -909,6 +972,7 @@ namespace HealthV2
 			}
 
 			IndicatePain(damage);
+			OnTakeDamageType?.Invoke(damageType, damagedBy);
 		}
 
 		/// <summary>
@@ -1307,7 +1371,7 @@ namespace HealthV2
 
 			//If we are in a container then don't produce miasma
 			//TODO: make this only happen with coffins, body bags and other body containers (morgue, etc)
-			if (objectBehaviour.ContainedInContainer != null) return;
+			if (objectBehaviour.ContainedInObjectContainer != null) return;
 
 			//TODO: check for formaldehyde in body, prevent if more than 15u
 
@@ -1760,6 +1824,68 @@ namespace HealthV2
 
 			InternalNetIDs = NewInternalNetIDs;
 		}
+
+
+		public void ExposePressureTemperature(float EnvironmentalPressure, float EnvironmentalTemperature)
+		{
+
+			PressureAlert ExtremistPressure = PressureAlert.None;
+			TemperatureAlert ExtremistTemperature = TemperatureAlert.None;
+			foreach (var bodyPart in SurfaceBodyParts)
+			{
+				var newTemperatureAlert = bodyPart.ExposeTemperature(EnvironmentalTemperature);
+				var newPressureAlert = bodyPart.ExposePressure(EnvironmentalPressure);
+				if (newPressureAlert != PressureAlert.None)
+				{
+					if (ExtremistPressure is not PressureAlert.PressureTooHigher or PressureAlert.PressureTooLow)
+					{
+						switch (ExtremistPressure)
+						{
+							case PressureAlert.PressureHigher or PressureAlert.PressureLow:
+							{
+								if (newPressureAlert is PressureAlert.PressureTooHigher or PressureAlert.PressureTooLow)
+								{
+									ExtremistPressure = newPressureAlert;
+								}
+
+								break;
+							}
+							case PressureAlert.None:
+								ExtremistPressure = newPressureAlert;
+								break;
+						}
+					}
+				}
+
+
+				if (newTemperatureAlert != TemperatureAlert.None)
+				{
+					if (ExtremistTemperature is not TemperatureAlert.TooHot or TemperatureAlert.TooCold)
+					{
+						switch (ExtremistTemperature)
+						{
+							case TemperatureAlert.Hot or TemperatureAlert.Cold:
+							{
+								if (newTemperatureAlert is TemperatureAlert.TooHot or TemperatureAlert.TooCold)
+								{
+									ExtremistTemperature = newTemperatureAlert;
+								}
+
+								break;
+							}
+							case TemperatureAlert.None:
+								ExtremistTemperature = newTemperatureAlert;
+								break;
+						}
+					}
+				}
+			}
+
+			healthStateController.SetTemperature(ExtremistTemperature);
+			healthStateController.SetPressure(ExtremistPressure);
+		}
+
+
 
 		public void IndicatePain(float dmgTaken)
 		{

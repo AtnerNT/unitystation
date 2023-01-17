@@ -14,7 +14,7 @@ namespace UI.Objects.Shuttles
 		[SerializeField]
 		private NetRadiusCircle circle = default;
 
-		public MapIconType type = MapIconType.None;
+		private MapIconType type = MapIconType.None;
 		public MapIconType Type {
 			get => type;
 			set {
@@ -24,7 +24,6 @@ namespace UI.Objects.Shuttles
 		}
 
 		public GameObject TrackedObject;
-		public Vector3 StaticPosition = TransformState.HiddenPos;
 		public int Radius = -1;
 
 		public void RefreshTrackedPos(Vector2 origin)
@@ -33,14 +32,12 @@ namespace UI.Objects.Shuttles
 			{
 				Value = (Vector2)TrackedObject.transform.position - origin;
 			}
-			else if (StaticPosition != TransformState.HiddenPos)
-			{
-				Value = (Vector2)StaticPosition - origin;
-			}
 			else
 			{
 				Position = TransformState.HiddenPos;
 			}
+
+			UpdatePeepers();
 		}
 
 		/// <summary>

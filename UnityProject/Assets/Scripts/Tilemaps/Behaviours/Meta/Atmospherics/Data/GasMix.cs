@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using NaughtyAttributes;
+using Objects.Atmospherics;
 using ScriptableObjects.Atmospherics;
 using Systems.Pipes;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 
 namespace Systems.Atmospherics
@@ -18,21 +21,47 @@ namespace Systems.Atmospherics
 
 		public List<GasValues> GasesArray => GasData.GasesArray;
 
+		[SerializeField, FormerlySerializedAs("Pressure")]
+		private float pressure;
+
 		/// <summary>In kPa.</summary>
-		public float Pressure;
+		public float Pressure
+		{
+			get => pressure;
+			set
+			{
+				if (float.IsNormal(value) == false && value != 0)
+				{
+					Logger.LogError($"AAAAAAAAAAAAA REEEEEEEEE pressure Invalid number!!!! {value}");
+					return;
+				}
+
+				pressure = Math.Clamp(value, 0, Single.MaxValue);
+			}
+		}
 
 		/// <summary>In cubic metres.</summary>
 		public float Volume;
 
+		[SerializeField, FormerlySerializedAs("Temperature")]
 		private float temperature;
 		/// <summary>In Kelvin.</summary>
 		public float Temperature
 		{
 			get { return temperature; }
-			set { temperature = Math.Clamp(value, 0, Single.MaxValue); }
+			set
+			{
+				if (float.IsNormal(value) == false && value != 0)
+				{
+					Logger.LogError($"AAAAAAAAAAAAA REEEEEEEEE Temperature Invalid number!!!! {value}");
+					return;
+				}
+
+				temperature = Math.Clamp(value, 0, Single.MaxValue);
+			}
 		}
 
-		
+
 		private HashSet<GasSO> cache = new HashSet<GasSO>();
 		private HashSet<GasSO> pipeCache = new HashSet<GasSO>();
 
@@ -58,8 +87,8 @@ namespace Systems.Atmospherics
 			}
 		}
 
-		public float
-			WholeHeatCapacity //this is the heat capacity for the entire gas mixture, in Joules/Kelvin. gets very big with lots of gas.
+		public float WholeHeatCapacity
+			//this is the heat capacity for the entire gas mixture, in Joules/Kelvin. gets very big with lots of gas.
 		{
 			get
 			{
@@ -84,6 +113,12 @@ namespace Systems.Atmospherics
 
 			set
 			{
+				if (float.IsNormal(value) == false && value != 0)
+				{
+					Logger.LogError($"AAAAAAAAAAAAA REEEEEEEEE InternalEnergy Invalid number!!!! {value}");
+					return;
+				}
+
 				if (WholeHeatCapacity == 0)
 				{
 					Temperature = 0;
@@ -361,7 +396,12 @@ namespace Systems.Atmospherics
 				totalVolume += PipeFunctions.PipeOrNet(gasMix).GetGasMix().Volume;
 			}
 
-			var newTemperature = totalInternalEnergy / totalWholeHeatCapacity;
+			var newTemperature = 0f;
+			if (totalWholeHeatCapacity != 0)
+			{
+				newTemperature = totalInternalEnergy / totalWholeHeatCapacity;
+			}
+
 
 			var List = AtmosUtils.CopyGasArray(this.GasData);
 
@@ -473,6 +513,25 @@ namespace Systems.Atmospherics
 			return bigGas; //The returned GasSO will be the gas with the biggest mole count in GasData.GasesArray
 		}
 
+
+		public static GasMix GetEnvironmentalGasMixForObject(UniversalObjectPhysics gameObject)
+		{
+			GasMix ambientGasMix;
+			if (gameObject.ContainedInObjectContainer != null && //Make generic function
+			    gameObject.ContainedInObjectContainer.TryGetComponent<GasContainer>(out var gasContainer))
+			{
+				ambientGasMix = gasContainer.GasMix;
+			}
+			else
+			{
+				var matrix = gameObject.registerTile.Matrix;
+				Vector3Int localPosition = MatrixManager.WorldToLocalInt(gameObject.OfficialPosition, matrix);
+				ambientGasMix = matrix.MetaDataLayer.Get(localPosition).GasMix;
+			}
+
+			return ambientGasMix;
+		}
+
 		/// <summary>
 		/// Set the moles value of a gas inside of a GasMix.
 		/// </summary>
@@ -511,7 +570,7 @@ namespace Systems.Atmospherics
 
 		public void Clear()
 		{
-			Temperature = AtmosDefines.SPACE_TEMPERATURE;
+			Temperature = 0;
 
 			GasData.Clear();
 			Pressure = 0;

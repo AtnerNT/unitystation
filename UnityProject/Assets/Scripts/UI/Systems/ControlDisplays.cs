@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Messages.Client.Lobby;
 using UI.Systems.Ghost;
 using UI.Action;
+using UI.Core.Action;
 
 namespace UI
 {
@@ -79,25 +80,30 @@ namespace UI
 			DetermineUI();
 		}
 
-		private void DetermineUI()
+		public void DetermineUI()
 		{
 			// TODO: make better system for handling lots of different UIs
-			if (PlayerManager.LocalPlayerScript.PlayerType == PlayerTypes.Blob)
+			if (PlayerManager.LocalPlayerObject == null) return;
+			if (PlayerManager.LocalPlayerObject.GetComponent<PlayerScript>().PlayerType == PlayerTypes.Blob)
 			{
 				SetUi(hudBottomBlob);
-				PlayerManager.LocalPlayerScript.GetComponent<BlobPlayer>()?.TurnOnClientLight();
+				PlayerManager.LocalPlayerObject.GetComponent<BlobPlayer>()?.TurnOnClientLight();
 			}
 			else if (PlayerManager.LocalPlayerScript.PlayerType == PlayerTypes.Ai)
 			{
 				SetUi(hudBottomAi);
 			}
-			else if (PlayerManager.LocalPlayerScript.playerHealth == null)
+			else if (PlayerManager.LocalPlayerObject.GetComponent<PlayerScript>().IsGhost)
 			{
 				SetUi(hudBottomGhost.gameObject);
 			}
 			else
 			{
 				SetUi(hudBottomHuman);
+				UIManager.Instance.UI_SlotManager.SetActive(true);
+				UIManager.Instance.UI_SlotManager.UpdateUI();
+				UIManager.Internals.SetupListeners();
+				UIManager.Instance.panelHudBottomController.SetupListeners();
 			}
 		}
 

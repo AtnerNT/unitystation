@@ -80,7 +80,7 @@ namespace UI.Objects.Shuttles
 				{
 					Waypoint = new GameObject($"{matrixMove.gameObject.name}Waypoint");
 				}
-				HideWaypoint(false);
+				HideWaypoint();
 
 				rulersColor = Rulers.Value;
 				rayColor = RadarScanRay.Value;
@@ -168,7 +168,7 @@ namespace UI.Objects.Shuttles
 			radarList.AddItems(MapIconType.Asteroids, GetObjectsOf<Asteroid>());
 			var stationBounds = MatrixManager.MainStationMatrix.MetaTileMap.GetLocalBounds();
 			var stationRadius = (int) Mathf.Abs(stationBounds.center.x - stationBounds.xMin);
-			radarList.AddStaticItem(MapIconType.Station, stationBounds.center.RoundTo2Int(), stationRadius);
+			radarList.AddItems(MapIconType.Station, new List<GameObject>{MatrixManager.MainStationMatrix.GameObject} , stationRadius);
 			radarList.AddItems(MapIconType.Waypoint, new List<GameObject>(new[] {Waypoint}));
 
 			if (emagged)
@@ -267,7 +267,7 @@ namespace UI.Objects.Shuttles
 
 		private void HideWaypoint(bool updateImmediately = true)
 		{
-			Waypoint.transform.position = TransformState.HiddenPos;
+			Waypoint.transform.position = new Vector3(0, 999999, 0);
 			if (updateImmediately)
 			{
 				radarList.UpdateExclusive(Waypoint);

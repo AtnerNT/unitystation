@@ -41,7 +41,7 @@ namespace HealthV2
 		private HealthBloodMessage BloodHealth => bloodHealth;
 
 		[SyncVar]
-		private float bleedStacks;
+		private float bleedStacks; //TODO Change to per body part instead
 		public float BleedStacks => bleedStacks;
 
 		[SyncVar(hook = nameof(SyncFireStacks))]
@@ -56,13 +56,12 @@ namespace HealthV2
 		private bool hasToxins;
 		public bool HasToxins => hasToxins;
 
-		[SyncVar]
-		private float temperature = 295.15f;
-		public float Temperature => temperature;
+		[SyncVar] private TemperatureAlert temperature = TemperatureAlert.None;
+		public TemperatureAlert Temperature => temperature;
 
 		[SyncVar]
-		private float pressure = 101;
-		public float Pressure => pressure;
+		private PressureAlert pressure = PressureAlert.None;
+		public PressureAlert Pressure => pressure;
 
 		private HealthDollStorage CurrentHealthDollStorage = new HealthDollStorage();
 
@@ -84,8 +83,8 @@ namespace HealthV2
 		public event Action<bool> ToxinEvent;
 		public event Action<float> OverallHealthEvent;
 		public event Action<float> FireStacksEvent;
-		public event Action<float> PressureEvent;
-		public event Action<float> TemperatureEvent;
+		public event Action<PressureAlert> PressureEvent;
+		public event Action<TemperatureAlert> TemperatureEvent;
 
 
 
@@ -100,6 +99,13 @@ namespace HealthV2
 			CurrentHealthDollStorage.DollStates = new List<HealthDollStorage.HealthDollState>();
 			livingHealthMasterBase = GetComponent<LivingHealthMasterBase>();
 			overallHealthSync = livingHealthMasterBase.MaxHealth;
+
+			var Player = gameObject.GetComponent<PlayerScript>();
+			if (Player != null)
+			{
+				Player.OnActionEnterPlayerControl += UpdateSyncVar;
+			}
+
 		}
 
 		#endregion
@@ -115,6 +121,12 @@ namespace HealthV2
 
 		#region ServerSetValue
 
+
+		private void UpdateSyncVar()
+		{
+			SyncFireStacks(fireStacks, fireStacks);
+			SyncHealthDoll(healthDollData, healthDollData);
+		}
 		//Holds all methods which the server will use to change a health value, will then sync change to client
 
 		[Server]
@@ -202,7 +214,7 @@ namespace HealthV2
 		}
 
 		[Server]
-		public void SetTemperature(float newTemperature)
+		public void SetTemperature(TemperatureAlert newTemperature)
 		{
 			temperature = newTemperature;
 			if (connectionToClient == null) return;
@@ -210,7 +222,7 @@ namespace HealthV2
 		}
 
 		[Server]
-		public void SetPressure(float newPressure)
+		public void SetPressure(PressureAlert newPressure)
 		{
 			pressure = newPressure;
 			if (connectionToClient == null) return;
@@ -260,7 +272,17 @@ namespace HealthV2
 		{
 			healthDollData = newDollData;
 			if (isServer) return;
-			CurrentHealthDollStorage = JsonConvert.DeserializeObject<HealthDollStorage>(healthDollData);
+			if (hasAuthority == false) return;
+			try
+			{
+				CurrentHealthDollStorage = JsonConvert.DeserializeObject<HealthDollStorage>(healthDollData);
+			}
+			catch (Exception e)
+			{
+				Logger.LogError(e.ToString()); //some weird ass serialisation error
+				return;
+			}
+
 			for (int i = 0; i < CurrentHealthDollStorage.DollStates.Count; i++)
 			{
 				UIManager.PlayerHealthUI.bodyPartListeners[i].SetDamageColor(CurrentHealthDollStorage.DollStates[i].damageColor.UncompresseToColour());
@@ -312,13 +334,13 @@ namespace HealthV2
 		}
 
 		[TargetRpc]
-		private void InvokeClientTemperatureEvent(float state)
+		private void InvokeClientTemperatureEvent(TemperatureAlert state)
 		{
 			TemperatureEvent?.Invoke(state);
 		}
 
 		[TargetRpc]
-		private void IvokeClientPressureEvent(float state)
+		private void IvokeClientPressureEvent(PressureAlert state)
 		{
 			PressureEvent?.Invoke(state);
 		}

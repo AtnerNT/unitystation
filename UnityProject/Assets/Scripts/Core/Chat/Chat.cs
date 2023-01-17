@@ -162,7 +162,7 @@ public partial class Chat : MonoBehaviour
 		{
 			message = isOOC ? message : processedMessage.message,
 			modifiers = (player == null) ? ChatModifier.None : processedMessage.chatModifiers,
-			speaker = (player == null) ? sentByPlayer.Username : player.playerName,
+			speaker = (player == null) ? sentByPlayer.Username : sentByPlayer.Mind.name,
 			position = (player == null) ? TransformState.HiddenPos : player.PlayerChatLocation.AssumedWorldPosServer(),
 			channels = channels,
 			originator = sentByPlayer.GameObject,
@@ -212,9 +212,10 @@ public partial class Chat : MonoBehaviour
 		{
 			if (player.playerHealth != null)
 			{
-				if (player.IsDeadOrGhost == false && player.mind.IsMiming && !processedMessage.chatModifiers.HasFlag(ChatModifier.Emote))
+				if (player.IsDeadOrGhost == false && player.Mind.IsMute && !processedMessage.chatModifiers.HasFlag(ChatModifier.Emote))
 				{
-					AddWarningMsgFromServer(sentByPlayer.GameObject, "You can't talk because you made a vow of silence.");
+					AddWarningMsgFromServer(sentByPlayer.GameObject, "You can't talk"); // because you made a vow of silence.
+					//TODO Explain why you can't talk
 					return;
 				}
 
@@ -249,7 +250,7 @@ public partial class Chat : MonoBehaviour
 			}
 
 			//Do chat bubble for nearby players
-			player.playerNetworkActions.ServerToggleChatIcon(processedMessage.message, processedMessage.chatModifiers, languageToUse);
+			player.PlayerNetworkActions.ServerToggleChatIcon(processedMessage.message, processedMessage.chatModifiers, languageToUse);
 		}
 
 		InvokeChatEvent(chatEvent);

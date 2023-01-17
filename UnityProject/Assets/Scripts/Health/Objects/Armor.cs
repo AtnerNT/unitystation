@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 
 /// <summary>
@@ -29,6 +30,14 @@ public class Armor
 	[Range(0,100)] public int DismembermentProtectionChance;
 
 	public bool StunImmunity = false;
+
+
+	[MinMaxSlider(0.00f, 50000.0f)]
+	public Vector2 TemperatureProtectionInK = new Vector2( 268.15f, 313.15f);
+
+	[MinMaxSlider(0.00f, 50000.0f)]
+	public Vector2 PressureProtectionInKpa = new Vector2(30f, 300f);
+
 
 	/// <summary>
 	/// Calculates how much damage would be done based on armor resistance and armor penetration.
@@ -138,6 +147,128 @@ public class Armor
 
 		return 0;
 	}
+
+
+	public bool InvalidValuesInTemperature() //Due to crappy unity serialisation
+	{
+		if ( TemperatureProtectionInK.y == 0)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool InvalidValuesInPressure() //Due to crappy unity serialisation
+	{
+		if (PressureProtectionInKpa.y == 0)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	public float GetMiddleTemperature()
+	{
+		return (TemperatureProtectionInK.x + TemperatureProtectionInK.y) / 2f;
+	}
+	public float GetMiddlePressure()
+	{
+		return (PressureProtectionInKpa.x + PressureProtectionInKpa.y) / 2f;
+	}
+
+	public bool TemperatureOutsideSafeRange(float temperature)
+	{
+		if (InvalidValuesInTemperature())
+		{
+			return false;
+		}
+
+		if (temperature < TemperatureProtectionInK.x || temperature > TemperatureProtectionInK.y)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+
+	public bool PressureOutsideSafeRange(float pressure)
+	{
+		if (InvalidValuesInPressure())
+		{
+			return false;
+		}
+
+
+		if (pressure < PressureProtectionInKpa.x || pressure > PressureProtectionInKpa.y)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool PressureNearingLimits(float pressure, out bool highPressure)
+	{
+		highPressure = false;
+		if (InvalidValuesInPressure())
+		{
+			return false;
+		}
+
+		var mid = GetMiddlePressure();
+
+		var AlertMin =  mid + (0.75f * (PressureProtectionInKpa.x - mid));
+		var AlertMax =  mid + (0.75f * ( PressureProtectionInKpa.y - mid));
+
+
+
+		if (pressure < (AlertMin))
+		{
+			highPressure = false;
+			return true;
+		}
+		else if (pressure > AlertMax)
+		{
+			highPressure = true;
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool TemperatureNearingLimits(float temperature, out bool highTemperature)
+	{
+		highTemperature = false;
+		if (InvalidValuesInPressure())
+		{
+			return false;
+		}
+
+
+		var mid = GetMiddleTemperature();
+
+		var AlertMin =  mid + (0.75f * (TemperatureProtectionInK.x - mid));
+		var AlertMax =  mid + (0.75f * ( TemperatureProtectionInK.y - mid));
+
+
+		if (temperature < (AlertMin))
+		{
+			highTemperature = false;
+			return true;
+		}
+		else if (temperature > AlertMax)
+		{
+			highTemperature = true;
+			return true;
+		}
+
+
+		return false;
+	}
+
 }
 
 /// <summary>

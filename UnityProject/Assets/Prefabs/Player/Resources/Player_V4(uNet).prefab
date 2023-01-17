@@ -534,6 +534,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   playerTypeSettings: {fileID: 11400000, guid: f1ddb9807767eb342a542c93328653f0, type: 2}
+  inventorySpeechModifiers: 0
   playerName: ' '
   visibleName: ' '
   PlayerSync: {fileID: 0}
@@ -769,7 +770,6 @@ MonoBehaviour:
   - {fileID: 21300000, guid: b4d72dee411a3410db2df144025d628c, type: 3}
   NameSprite: 000000000100000002000000
   DefaultSettings:
-    Intensity: 0
     Colour: {r: 0, g: 0, b: 0, a: 0}
     EnumSprite: 0
     Size: 12
@@ -875,7 +875,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 0
   serverOnly: 0
-  ignoresHasSpawnedCheck: 0
   visible: 0
   m_AssetId: c4494414d24d2f2468e74daa79468631
   hasSpawned: 0
@@ -1166,7 +1165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75ee217de27dd4545be3c51829125825, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncMode: 1
+  syncMode: 0
   syncInterval: 0
   livingHealthMasterBase: {fileID: 0}
 --- !u!114 &108550902244119649
@@ -1349,6 +1348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   foreverID: oRKrJS26sGZ7QuMo1?Rh
+  <AlternativePrefabName>k__BackingField: 
 --- !u!114 &1594872346571213938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1455,10 +1455,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd4fccae344a4981a0739eaa263d1b9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syncMode: 1
+  syncMode: 0
   syncInterval: 0.1
   defaultLanguages: {fileID: 0}
   omniTongue: 0
+  PlayerScript: {fileID: 0}
 --- !u!114 &3489173522199466798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8293,7 +8294,7 @@ SpriteRenderer:
   m_SortingLayerID: -902452607
   m_SortingLayer: 22
   m_SortingOrder: 20
-  m_Sprite: {fileID: -4549444404219585148, guid: 2adbceb9cc674484cb9a2c58b41d5493,
+  m_Sprite: {fileID: 7660122581263827943, guid: 2adbceb9cc674484cb9a2c58b41d5493,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

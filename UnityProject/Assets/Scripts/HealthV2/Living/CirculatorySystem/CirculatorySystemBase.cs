@@ -5,6 +5,7 @@ using UnityEngine;
 using Chemistry;
 using Chemistry.Components;
 using HealthV2.Living.CirculatorySystem;
+using Items.Implants.Organs;
 using NaughtyAttributes;
 
 namespace HealthV2
@@ -102,6 +103,7 @@ namespace HealthV2
 					continue;
 				}
 
+				if (bodyPart.IsBloodReagentConsumed)
 				{
 					if (SaturationToConsume.ContainsKey(bodyPart.bloodType) == false)
 					{
@@ -203,6 +205,30 @@ namespace HealthV2
 			{
 				foreach (var KVP in bloodAndValues.Value)
 				{
+					var purityMultiplier = 1f;
+
+					var bloodPressure = 1f;
+
+					var percentageBloodPressure = BloodPool.Total  / StartingBlood;
+					if (percentageBloodPressure < 0.75f)
+					{
+						bloodPressure = percentageBloodPressure / 0.75f;
+					}
+
+					if (percentageBloodPressure > 1.25f)
+					{
+						healthMaster.ChangeBleedStacks(1); //TODO Change to per body part instead
+
+					}
+
+
+					var percentage =  BloodPool.GetPercent(bloodAndValues.Key);
+
+					if (percentage < 0.33f)
+					{
+						purityMultiplier = percentage / 0.33f;
+					}
+
 					//Heal if blood saturation consumption is fine, otherwise do damage
 					float bloodSaturation = 0;
 					float bloodCap = bloodAndValues.Key.GetGasCapacity(BloodPool, KVP.Key);
@@ -212,6 +238,12 @@ namespace HealthV2
 					}
 
 					bloodSaturation = bloodSaturation * HeartEfficiency * bloodAndValues.Key.CalculatePercentageBloodPresent(BloodPool);
+
+
+					bloodSaturation *= purityMultiplier;
+					bloodSaturation *= bloodPressure;
+
+
 
 
 					var Available = BloodPool[KVP.Key] * KVP.Value.Percentage * HeartEfficiency; // This is just all -  Stuff nothing to do with saturation!
@@ -259,7 +291,7 @@ namespace HealthV2
 					foreach (var bodyPart in KVP.Value.RelatedBodyParts)
 					{
 						bodyPart.currentBloodSaturation = bloodSaturation;
-						bodyPart.AffectDamage(damage, (int) DamageType.Oxy);
+						bodyPart.TakeDamage(null, damage,  AttackType.Internal, DamageType.Oxy, DamageSubOrgans : false);
 					}
 				}
 			}

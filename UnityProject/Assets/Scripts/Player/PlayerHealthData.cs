@@ -23,7 +23,6 @@ public class ObjectList
 [System.Serializable]
 public class RaceHealthData
 {
-	public GameObject BrainPrefab;
 
 	public ObjectList Head;
 	public ObjectList Torso;
@@ -67,6 +66,7 @@ public class RaceHealthData
 
 	public GameObject MeatProduce;
 	public GameObject SkinProduce;
+	public bool CanShowUpInTheCharacterCreatorScreen = true;
 }
 
 

@@ -22,7 +22,6 @@ namespace TileManagement
 
 		private Stopwatch stopwatch = new Stopwatch();
 
-
 		private readonly Dictionary<Layer, Dictionary<Vector3Int, TileLocation>> PresentTiles =
 			new Dictionary<Layer, Dictionary<Vector3Int, TileLocation>>();
 
@@ -239,14 +238,16 @@ namespace TileManagement
 			stopwatch.Reset();
 			stopwatch.Start();
 			TileLocation tileLocation = null;
-			while (stopwatch.ElapsedMilliseconds < TargetMSpreFrame)
+			lock (QueuedChanges)
 			{
-				lock (QueuedChanges)
+				while (stopwatch.ElapsedMilliseconds < TargetMSpreFrame)
 				{
 					if (QueuedChanges.Count == 0)
 						break;
 					tileLocation = QueuedChanges.Dequeue();
+
 					MainThreadTileChange(tileLocation);
+					tileLocation.InQueue = false;
 				}
 			}
 
@@ -260,13 +261,11 @@ namespace TileManagement
 
 		private void ApplyTileChange(TileLocation tileLocation)
 		{
+
 			lock (QueuedChanges)
 			{
-				if (QueuedChanges.Contains(tileLocation))
-				{
-					return;
-				}
-
+				if (tileLocation.InQueue) return;
+				tileLocation.InQueue = true;
 				//cant modify the unity tilemap in a non main thread
 				QueuedChanges.Enqueue(tileLocation);
 			}
@@ -377,6 +376,17 @@ namespace TileManagement
 					matrix.TileChangeManager.AddToChangeList(tileLocation.position,
 						tileLocation.layerTile.LayerType, tileLocation.layer, tileLocation, false, false);
 				}
+
+				if (tileLocation.NewTile)
+				{
+					MatrixManager.Instance.spaceMatrix.TilemapsDamage[0].
+						SwitchObjectsMatrixAt(tileLocation.position
+							.ToWorld(tileLocation.metaTileMap.matrix)
+							.ToLocal(MatrixManager.Instance.spaceMatrix).RoundToInt());
+					tileLocation.NewTile = false;
+				}
+
+
 
 
 				UpdateTileMessage.Send(matrix.NetworkedMatrix.MatrixSync.netId, tileLocation.position,
@@ -771,7 +781,7 @@ namespace TileManagement
 		{
 			return SetTile(position, TileManager.GetTile(TileType, tileName), matrixTransform, color, isPlaying);
 		}
-		
+
 		private const int MaxDepth = 50;
 
 		public Vector3Int SetTile(Vector3Int position, LayerTile tile, Matrix4x4? matrixTransform = null,
@@ -833,6 +843,7 @@ namespace TileManagement
 							tileLocations[index].layer = layer;
 							tileLocations[index].metaTileMap = this;
 							tileLocations[index].position = position;
+							tileLocations[index].NewTile = true;
 						}
 
 						tileLocation = tileLocations[index];
@@ -851,6 +862,7 @@ namespace TileManagement
 						tileLocation.layer = layer;
 						tileLocation.metaTileMap = this;
 						tileLocation.position = position;
+						tileLocation.NewTile = true;
 						lock (PresentTiles)
 						{
 							PresentTiles[layer][position] = tileLocation;

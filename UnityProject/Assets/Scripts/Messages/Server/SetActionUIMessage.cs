@@ -5,6 +5,7 @@ using UnityEngine;
 using Systems.Spells;
 using ScriptableObjects.Systems.Spells;
 using UI.Action;
+using UI.Core.Action;
 
 namespace Messages.Server
 {
@@ -21,6 +22,7 @@ namespace Messages.Server
 			public bool isMulti;
 			public int ComponentLocation;
 			public uint NetObject;
+			public uint NetObjectOn;
 			public bool showAlert;
 			public float cooldown;
 			public ushort ComponentID;
@@ -80,7 +82,9 @@ namespace Messages.Server
 					// no need to instantiate a spell if server asks to hide one anyway
 					if (msg.ProposedAction == UpdateType.StateChange && msg.showAlert == false) return;
 
-					action = spellData.AddToPlayer(PlayerManager.LocalPlayerScript);
+					//Loads what game object this Spell is on
+					LoadNetworkObject(msg.NetObjectOn);
+					action = spellData.AddToPlayer(NetworkObject.GetComponent<Mind>());
 				}
 			}
 			else
@@ -143,7 +147,8 @@ namespace Messages.Server
 					ProposedAction = ProposedAction,
 					ComponentID = SerializeType(actionFromSO.GetType()),
 					spellListIndex = -1,
-					SpriteName = ID
+					SpriteName = ID,
+					NetObjectOn = recipient.NetId()
 				};
 				SendTo(recipient, msg);
 				return msg;
@@ -158,7 +163,8 @@ namespace Messages.Server
 					cooldown = cooldown,
 					ProposedAction = ProposedAction,
 					ComponentID = SerializeType(spellAction.GetType()),
-					SpriteName = ID
+					SpriteName = ID,
+					NetObjectOn = recipient.NetId()
 				};
 				SendTo(recipient, msg);
 				return msg;
@@ -194,7 +200,8 @@ namespace Messages.Server
 						showAlert = show,
 						ProposedAction = ProposedAction,
 						spellListIndex = -1,
-						SpriteName = ID
+						SpriteName = ID,
+						NetObjectOn = recipient.NetId()
 					};
 					SendTo(recipient, msg);
 					return msg;

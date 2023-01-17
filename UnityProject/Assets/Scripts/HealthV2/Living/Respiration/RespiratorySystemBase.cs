@@ -2,13 +2,15 @@
 using Chemistry;
 using Systems.Atmospherics;
 using Objects.Atmospherics;
-using ScriptableObjects.Atmospherics;
+using System.Collections.Generic;
+using Items.Implants.Organs;
+using Mirror;
 
 namespace HealthV2
 {
 	[RequireComponent(typeof(LivingHealthMasterBase))]
 	[RequireComponent(typeof(CirculatorySystemBase))]
-	public class RespiratorySystemBase : MonoBehaviour
+	public class RespiratorySystemBase : NetworkBehaviour //Not really a Respiratory More like atmospheric system idk TODO give better name
 	{
 		private LivingHealthMasterBase healthMaster;
 		private PlayerScript playerScript;
@@ -21,21 +23,12 @@ namespace HealthV2
 
 		public bool CanBreatheAnywhere => canBreathAnywhere;
 
-		[Tooltip("If this is turned on, the organism takes low pressure damage.")]
-		[SerializeField]
-		private bool takeLowPressureDamage = true;
-
-		[Tooltip("If this is turned on, the organism takes high pressure damage.")]
-		[SerializeField]
-		private bool takeHighPressureDamage = true;
-
 		[Tooltip("How often the respiration system should update.")] [SerializeField]
 		private float tickRate = 1f;
 
 		public bool IsSuffocating => healthStateController.IsSuffocating;
-		public float Temperature => healthStateController.Temperature;
-		public float Pressure => healthStateController.Pressure;
 
+		public readonly SyncList<BreathingTubeImplant> CurrentBreathingTubes = new SyncList<BreathingTubeImplant>();
 
 		private void Awake()
 		{
@@ -73,29 +66,6 @@ namespace HealthV2
 		{
 			if (healthMaster.IsDead) return;
 
-			if (IsEVACompatible())
-			{
-				healthStateController.SetPressure(AtmosConstants.ONE_ATMOSPHERE);
-				healthStateController.SetTemperature(293.15f);
-				return;
-			}
-
-			GasMix ambientGasMix;
-			if (objectBehaviour.ContainedInContainer != null &&
-					objectBehaviour.ContainedInContainer.TryGetComponent<GasContainer>(out var gasContainer))
-			{
-				ambientGasMix = gasContainer.GasMix;
-			}
-			else
-			{
-				var matrix = healthMaster.RegisterTile.Matrix;
-				Vector3Int localPosition = MatrixManager.WorldToLocalInt(objectBehaviour.registerTile.WorldPosition, matrix);
-				ambientGasMix = matrix.MetaDataLayer.Get(localPosition).GasMix;
-			}
-
-			healthStateController.SetTemperature(ambientGasMix.Temperature);
-			healthStateController.SetPressure(ambientGasMix.Pressure);
-			CheckPressureDamage();
 		}
 
 		/// <summary>
@@ -153,16 +123,30 @@ namespace HealthV2
 		{
 			if (playerScript == null || playerScript.Equipment == null) return null;
 
+			foreach(BreathingTubeImplant implant in CurrentBreathingTubes) //If emped, player will breath no air
+			{
+				if(implant.isEMPed)
+				{
+					GasContainer gasContainer = new GasContainer();
+					gasContainer.GasMix = new GasMix();
+					return gasContainer;
+				}
+			}
+
 			// Check if internals exist
 			var hasMask = false;
 
-			foreach (var itemSlot in playerScript.DynamicItemStorage.GetNamedItemSlots(NamedSlot.mask))
+			if (CurrentBreathingTubes.Count > 0) hasMask = true;
+			else
 			{
-				if (itemSlot.Item == null) continue;
-				if (itemSlot.ItemAttributes.CanConnectToTank)
+				foreach (var itemSlot in playerScript.DynamicItemStorage.GetNamedItemSlots(NamedSlot.mask))
 				{
-					hasMask = true;
-					break;
+					if (itemSlot.Item == null) continue;
+					if (itemSlot.ItemAttributes.CanConnectToTank)
+					{
+						hasMask = true;
+						break;
+					}
 				}
 			}
 
@@ -183,25 +167,7 @@ namespace HealthV2
 			return null;
 		}
 
-		private void CheckPressureDamage()
-		{
-			if (takeLowPressureDamage && Pressure < AtmosConstants.MINIMUM_OXYGEN_PRESSURE)
-			{
-				ApplyDamage(AtmosConstants.LOW_PRESSURE_DAMAGE, DamageType.Brute);
-				return;
-			}
-
-			if (takeHighPressureDamage && Pressure > AtmosConstants.HAZARD_HIGH_PRESSURE)
-			{
-				float damage = Mathf.Min(
-					((Pressure / AtmosConstants.HAZARD_HIGH_PRESSURE) - 1) * AtmosConstants.PRESSURE_DAMAGE_COEFFICIENT,
-					AtmosConstants.MAX_HIGH_PRESSURE_DAMAGE);
-
-				ApplyDamage(damage, DamageType.Brute);
-			}
-		}
-
-		public bool IsEVACompatible()
+		public bool IsEVACompatible() //Only used for splash protection now
 		{
 			if (playerScript == null)
 			{
@@ -228,6 +194,18 @@ namespace HealthV2
 		{
 			//TODO: Figure out what kind of damage low pressure should be doing.
 			healthMaster.ApplyDamageAll(null, amount, AttackType.Internal, damageType);
+		}
+
+		public void AddImplant(BreathingTubeImplant implant)
+		{
+			CurrentBreathingTubes.Add(implant);
+			netIdentity.isDirty = true;
+		}
+
+		public void RemoveImplant(BreathingTubeImplant implant)
+		{
+			CurrentBreathingTubes.Remove(implant);
+			netIdentity.isDirty = true;
 		}
 	}
 }

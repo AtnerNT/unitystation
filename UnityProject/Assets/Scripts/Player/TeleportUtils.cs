@@ -7,6 +7,7 @@ using Systems.MobAIs;
 using UnityEngine;
 using Systems.Spawns;
 using Objects;
+using Random = UnityEngine.Random;
 
 namespace Systems.Teleport
 {
@@ -194,8 +195,8 @@ namespace Systems.Teleport
 
 		public static void TeleportLocalGhostTo(TeleportInfo teleportInfo)
 		{
-			var latestPosition = teleportInfo.gameObject.transform.position;
-			var playerPosition = PlayerManager.LocalPlayerObject.transform.position;//Finds current player coords
+			var latestPosition = teleportInfo.gameObject.AssumedWorldPosServer();
+			var playerPosition = PlayerManager.LocalPlayerObject.AssumedWorldPosServer();//Finds current player coords
 
 			if (latestPosition != playerPosition)//Spam Prevention
 			{
@@ -264,6 +265,20 @@ namespace Systems.Teleport
 			}
 
 			return newPosition;
+		}
+
+		/// <summary>
+		/// Gets a random position on the x and y axis for teleportation.
+		/// Has re-reconfigurable range. All ranges must be added by one.
+		/// </summary>
+		public static Vector3Int RandomTeleportLocation(int xRange = 11, int yRange = 11)
+		{
+			//Get random x from -10 to 10
+			var xCoord = Random.Range(0, xRange) * (DMMath.Prob(50) ? -1 : 1);
+
+			//Get random y from -10 to 10 but not 0 if x is 0 so to not spawn two portals on player
+			var yCoord = Random.Range((xCoord == 0 ? 1 : 0), yRange) * (DMMath.Prob(50) ? -1 : 1);
+			return new Vector3Int(xCoord, yCoord);
 		}
 	}
 }

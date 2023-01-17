@@ -33,17 +33,21 @@ namespace Player.Language
 		//Only valid on owner player
 		private SyncList<NetworkLanguage> addedLanguages = new SyncList<NetworkLanguage>();
 
+		public PlayerScript PlayerScript;
+
 		private void Start()
 		{
+			PlayerScript = this.GetComponent<PlayerScript>();
+			PlayerScript.OnActionEnterPlayerControl += OnPlayerEnterBody;
 			if(defaultLanguages == null) return;
 
 			//Copy the default lists to this script lists so we can add to it during runtime without adding to the SO
 			SetupFromGroup(defaultLanguages);
 		}
 
-		public override void OnStartLocalPlayer()
+		public void OnPlayerEnterBody()
 		{
-			if(isServer) return;
+			if(CustomNetworkManager.IsServer) return;
 
 			addedLanguages.Callback += OnLanguageListChange;
 
@@ -73,7 +77,7 @@ namespace Player.Language
 			UnderstoodLanguages = newGroup.UnderstoodLanguages.ToHashSet();
 			SpokenLanguages = newGroup.SpokenLanguages.ToHashSet();
 			BlockedLanguages = newGroup.BlockedLanguages.ToHashSet();
-			
+
 			if(CustomNetworkManager.IsServer == false) return;
 
 			ResetCurrentLanguage();
@@ -232,8 +236,6 @@ namespace Player.Language
 		void OnLanguageListChange(SyncList<NetworkLanguage>.Operation op, int index, NetworkLanguage oldItem,
 			NetworkLanguage newItem)
 		{
-			if(isLocalPlayer == false) return;
-
 			switch (op)
 			{
 				case SyncList<NetworkLanguage>.Operation.OP_ADD:
@@ -284,7 +286,7 @@ namespace Player.Language
 
 		private void SyncCurrentLanguage(ushort oldLanguage, ushort newLanguage)
 		{
-			if(isLocalPlayer == false) return;
+			if(hasAuthority == false) return;
 
 			currentLanguageId = newLanguage;
 

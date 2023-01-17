@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 using System.Linq;
+using Health.Objects;
 using Random = System.Random;
 
 namespace HealthV2
@@ -120,6 +121,8 @@ namespace HealthV2
 			0
 		};
 
+		public DamageWeaknesses damageWeaknesses { get; } = new DamageWeaknesses();
+
 		/// <summary>
 		/// The total damage this body part has taken that is not from lack of blood reagent
 		/// and not including cellular (clone) damage
@@ -186,7 +189,7 @@ namespace HealthV2
 		/// </summary>
 		/// <param name="damage">Damage amount</param>
 		/// <param name="damageType">The type of damage</param>
-		public void AffectDamage(float damage, int damageType)
+		private void AffectDamage(float damage, int damageType)
 		{
 			if (damage == 0) return;
 
@@ -213,6 +216,137 @@ namespace HealthV2
 			UpdateSeverity();
 		}
 
+
+		public TemperatureAlert ExposeTemperature(float environmentalTemperature)
+		{
+			bool alertTypeHigherTemperature = false;
+			if (SelfArmor.TemperatureOutsideSafeRange(environmentalTemperature))
+			{
+				float min = SelfArmor.TemperatureProtectionInK.x;
+				float max = SelfArmor.TemperatureProtectionInK.y;
+
+				foreach (var armour in ClothingArmors)
+				{
+					if (armour.InvalidValuesInTemperature() == false)
+					{
+						min = Mathf.Min(min, armour.TemperatureProtectionInK.x);
+						max = Mathf.Max(max, armour.TemperatureProtectionInK.y);
+					}
+				}
+
+				if (environmentalTemperature < min)
+				{
+					//so, Half Temperature of the minimum threshold that's when the maximum damage will kick in
+					TakeDamage(null,   0.25f*Mathf.Clamp((min-environmentalTemperature)/(min/2f), 0f,1f), AttackType.Internal, DamageType.Burn);
+					return TemperatureAlert.TooCold;
+				}
+				else if (environmentalTemperature > max)
+				{
+
+					var mid = SelfArmor.GetMiddleTemperature();
+					var hotRange =  (max - mid ); //To get how much hot protection it has
+
+					//so, Double of the maximum temperature that's when the maximum damage Will start kicking
+					TakeDamage(null, 0.25f*Mathf.Clamp((environmentalTemperature-max)/hotRange, 0f,1f), AttackType.Internal, DamageType.Burn);
+					return TemperatureAlert.TooHot;
+				}
+			}
+
+			if (SelfArmor.TemperatureNearingLimits(environmentalTemperature, out alertTypeHigherTemperature))
+			{
+				bool NotNearingLimit = true;
+				foreach (var armour in ClothingArmors)
+				{
+					if (armour.InvalidValuesInTemperature() == false)
+					{
+						NotNearingLimit = armour.TemperatureNearingLimits(environmentalTemperature, out alertTypeHigherTemperature);
+						if (NotNearingLimit == false)
+						{
+							return TemperatureAlert.None;
+						}
+					}
+				}
+
+
+				if (alertTypeHigherTemperature)
+				{
+					return TemperatureAlert.Hot;
+				}
+				else
+				{
+					return TemperatureAlert.Cold;
+				}
+			}
+			return TemperatureAlert.None;
+		}
+
+		public PressureAlert ExposePressure(float environmentalPressure)
+		{
+			bool alertTypeHigherPressure = false;
+
+			if (SelfArmor.PressureOutsideSafeRange(environmentalPressure))
+			{
+
+				float min = SelfArmor.PressureProtectionInKpa.x;
+				float max = SelfArmor.PressureProtectionInKpa.y;
+
+				foreach (var armour in ClothingArmors)
+				{
+					if (armour.InvalidValuesInPressure() == false)
+					{
+						min = Mathf.Min(min, armour.PressureProtectionInKpa.x);
+						max = Mathf.Max(max, armour.PressureProtectionInKpa.y);
+					}
+				}
+
+				if (environmentalPressure < min)
+				{
+					//so, Half Pressure of the minimum threshold that's when the maximum damage will kick in
+					TakeDamage(null,   0.25f*Mathf.Clamp((min - environmentalPressure)/(min/2f), 0f,1f), AttackType.Internal, DamageType.Brute);
+					return PressureAlert.PressureTooLow;
+
+				}
+				else if (environmentalPressure > max)
+				{
+					//Alert UI here
+
+					var mid = SelfArmor.GetMiddlePressure();
+					var PressureRange =  (max - mid ); //To get how much PressureRange protection it has
+
+					//so, Double of the maximum Pressure that's when the maximum damage Will start kicking
+					TakeDamage(null, 0.25f*Mathf.Clamp((environmentalPressure-max)/PressureRange, 0f,1f), AttackType.Internal, DamageType.Brute);
+					return PressureAlert.PressureTooHigher;
+				}
+			}
+
+			if (SelfArmor.PressureNearingLimits(environmentalPressure, out alertTypeHigherPressure))
+			{
+				bool NotNearingLimit = true;
+				foreach (var armour in ClothingArmors)
+				{
+					if (armour.InvalidValuesInPressure() == false)
+					{
+						NotNearingLimit = armour.PressureNearingLimits(environmentalPressure, out alertTypeHigherPressure);
+						if (NotNearingLimit == false)
+						{
+							return PressureAlert.None;
+						}
+					}
+				}
+
+				if (alertTypeHigherPressure)
+				{
+					return PressureAlert.PressureHigher;
+				}
+				else
+				{
+					return PressureAlert.PressureLow;
+				}
+			}
+			return PressureAlert.None;
+		}
+
+
 		/// <summary>
 		/// Applies damage to this body part. Damage will be divided among it and sub organs depending on their
 		/// armor values.
@@ -232,6 +366,11 @@ namespace HealthV2
 				ClothingArmors,
 				armorPenetration
 			);
+			if (damageToLimb > 0)
+			{
+				damageToLimb = damageWeaknesses.CalculateAppliedDamage(damageToLimb, damageType);
+			}
+
 			AffectDamage(damageToLimb, (int) damageType);
 
 			// May be changed to individual damage
@@ -288,13 +427,13 @@ namespace HealthV2
 			{
 				foreach (var organ in containBodyParts)
 				{
-					organ.AffectDamage(subDamage / containBodyParts.Count, (int) damageType);
+					organ.TakeDamage(null, subDamage / containBodyParts.Count , attackType , damageType);
 				}
 			}
 			else
 			{
 				var organBodyPart = containBodyParts.PickRandom(); //It's not like you can aim for Someone's liver can you
-				organBodyPart.AffectDamage(subDamage, (int) damageType);
+				organBodyPart.TakeDamage(null, subDamage, attackType , damageType);
 			}
 		}
 
@@ -304,7 +443,7 @@ namespace HealthV2
 		public void HealDamage(GameObject healingItem, float healAmt,
 			DamageType damageTypeToHeal)
 		{
-			AffectDamage(-healAmt, (int) damageTypeToHeal);
+			TakeDamage(healingItem, -healAmt, AttackType.Internal, damageTypeToHeal, DamageSubOrgans  : false);
 		}
 
 		/// <summary>
@@ -313,7 +452,7 @@ namespace HealthV2
 		public void HealDamage(GameObject healingItem, float healAmt,
 			int damageTypeToHeal)
 		{
-			AffectDamage(-healAmt, damageTypeToHeal);
+			HealDamage(healingItem, healAmt, (DamageType) damageTypeToHeal);
 		}
 
 
@@ -353,8 +492,8 @@ namespace HealthV2
 				ProcessingRadiation = 2;
 			}
 
-			AffectDamage(-ProcessingRadiation, (int) DamageType.Radiation);
-			AffectDamage(ProcessingRadiation * 0.1f, (int) DamageType.Tox);
+			HealDamage(null,ProcessingRadiation, DamageType.Radiation);
+			TakeDamage(null, ProcessingRadiation * 0.1f,AttackType.Internal , DamageType.Tox, DamageSubOrgans : false); //This Should bypass all armour
 		}
 
 		/// <summary>

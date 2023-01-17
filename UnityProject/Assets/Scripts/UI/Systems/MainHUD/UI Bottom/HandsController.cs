@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HealthV2;
 using Items;
+using Items.Implants.Organs;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -90,7 +91,7 @@ public class HandsController : MonoBehaviour
 
 		StorageToHands[StorageCharacteristics] = HandController;
 		HandController.AddHand(bodyPartUISlots, StorageCharacteristics);
-		if (PlayerManager.LocalPlayerScript.playerNetworkActions.activeHand == null)
+		if (PlayerManager.LocalPlayerScript.PlayerNetworkActions.activeHand == null)
 		{
 			HandController.PickActiveHand();
 		}
@@ -108,9 +109,9 @@ public class HandsController : MonoBehaviour
 		AvailableRightHand.Clear();
 		DoubleHandControllers.Clear();
 		activeDoubleHandController = null;
-		PlayerManager.LocalPlayerScript.playerNetworkActions.CmdSetActiveHand(0, NamedSlot.none);
-		PlayerManager.LocalPlayerScript.playerNetworkActions.activeHand = null;
-		PlayerManager.LocalPlayerScript.playerNetworkActions.CurrentActiveHand = NamedSlot.none;
+		PlayerManager.LocalPlayerScript.PlayerNetworkActions.CmdSetActiveHand(0, NamedSlot.none);
+		PlayerManager.LocalPlayerScript.PlayerNetworkActions.activeHand = null;
+		PlayerManager.LocalPlayerScript.PlayerNetworkActions.CurrentActiveHand = NamedSlot.none;
 	}
 
 	public void RemoveHand(
@@ -149,9 +150,9 @@ public class HandsController : MonoBehaviour
 				}
 				else
 				{
-					PlayerManager.LocalPlayerScript.playerNetworkActions.CmdSetActiveHand(0, NamedSlot.none);
-					PlayerManager.LocalPlayerScript.playerNetworkActions.activeHand = null;
-					PlayerManager.LocalPlayerScript.playerNetworkActions.CurrentActiveHand = NamedSlot.none;
+					PlayerManager.LocalPlayerScript.PlayerNetworkActions.CmdSetActiveHand(0, NamedSlot.none);
+					PlayerManager.LocalPlayerScript.PlayerNetworkActions.activeHand = null;
+					PlayerManager.LocalPlayerScript.PlayerNetworkActions.CurrentActiveHand = NamedSlot.none;
 				}
 			}
 
@@ -198,11 +199,11 @@ public class HandsController : MonoBehaviour
 		ActiveHand = SetActiv;
 		if (activeDoubleHandController.GetHand(SetActiv).RelatedBodyPartUISlots.GameObject == null) return;
 
-		PlayerManager.LocalPlayerScript.playerNetworkActions.CmdSetActiveHand(
+		PlayerManager.LocalPlayerScript.PlayerNetworkActions.CmdSetActiveHand(
 			activeDoubleHandController.GetHand(SetActiv).RelatedBodyPartUISlots.GameObject.NetId(), SetActiv);
-		PlayerManager.LocalPlayerScript.playerNetworkActions.activeHand =
+		PlayerManager.LocalPlayerScript.PlayerNetworkActions.activeHand =
 			activeDoubleHandController.GetHand(SetActiv).RelatedBodyPartUISlots.GameObject;
-		PlayerManager.LocalPlayerScript.playerNetworkActions.CurrentActiveHand = SetActiv;
+		PlayerManager.LocalPlayerScript.PlayerNetworkActions.CurrentActiveHand = SetActiv;
 	}
 
 	/// <summary>

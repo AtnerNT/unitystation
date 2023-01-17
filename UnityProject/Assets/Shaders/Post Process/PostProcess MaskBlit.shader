@@ -61,21 +61,31 @@
 				fixed4 occLightSample = tex2D(_ObstacleLightMask, i.lightUv);
 
 				float _obstacleMask = occlusionSample.r;
-				fixed4 mixedLight = lightSample * (1-_obstacleMask) +((occLightSample-0.2)*0.5) * _obstacleMask;
+				fixed4 mixedLight = lightSample;
 				fixed4 screen = tex2D(_MainTex, i.uv);
 
-				//expand colour range
-				fixed4 doubleBalanceLight = mixedLight*2;
+				//Times the light so it's a little bit brighter, this is from the reduced range we have 0 to 0.66 = normal light 0.66 to 1 blown out light
+				mixedLight = mixedLight *1.5;
+
+				//We square root and get the "normal" vector of it So the magnitude of the light doesn't play any role in the brightness
+				//since brightness is determined by the alpha
+				float length = sqrt( (mixedLight.r*2) + (mixedLight.g*2) + (mixedLight.b*2));
+
+				//2.25 Is balancing numbers
+				fixed3 normaliseColour = (mixedLight / (length/2.25)) ; 
+			
+
+				//Adding the occlusion and wall stuff
+				fixed3 BalanceLight = clamp(normaliseColour * clamp( occLightSample.a +  mixedLight.a + 0.55, 0,1), 0, 1);
+
+				//Adding the occlusion and wall stuff
+				BalanceLight = BalanceLight + (( occLightSample * 0.75 ) * (_obstacleMask));
 				
-		
 				//generate bloom 
-				fixed4 balancedMixLight = (lightSample - 0.75)*0.5;
-				balancedMixLight.r = clamp(balancedMixLight.r,0, 10);
-				balancedMixLight.g = clamp(balancedMixLight.g,0, 10);
-				balancedMixLight.b = clamp(balancedMixLight.b,0, 10);
+				fixed3 balancedMixLight =  clamp(normaliseColour*(mixedLight.a - 0.66), 0, 10)*1;
 				
 				// Blend light with scene.
-				fixed4 screenLit =  fixed4( ((screen.rgb*doubleBalanceLight)+balancedMixLight) , screen.a);
+				fixed4 screenLit =  fixed4( ((screen.rgb*BalanceLight+balancedMixLight)) , screen.a);
 				
 				// Mix Background.
 				fixed4 background = tex2D(_BackgroundTex, i.uv);

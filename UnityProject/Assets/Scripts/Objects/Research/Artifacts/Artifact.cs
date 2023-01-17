@@ -53,7 +53,8 @@ namespace Objects.Research
 		public bool isDormant = true;
 		public ItemTrait DormantTrigger;
 
-		int samplesTaken = 0;
+		private int samplesTaken = 0;
+		private int maxSamples = 5;
 
 		private Coroutine animationCoroutine = null;
 
@@ -64,6 +65,13 @@ namespace Objects.Research
 		public AreaEffectBase AreaEffect;
 		public InteractEffectBase InteractEffect;
 		public DamageEffectBase DamageEffect;
+
+		private bool forceWallAreaEffect => AreaEffect is ForcefieldAreaEffect;
+
+		[SerializeField]
+		private DamageEffectBase forceWallDamageEffectSO = null;
+		private bool forceWallDamageEffect = false;
+	
 
 
 		[SyncVar] public string ID = "T376";
@@ -101,6 +109,7 @@ namespace Objects.Research
 		{
 			//Sets appearance
 			artifactData.Type = (ArtifactType)Random.Range(0, 3);
+			maxSamples = Random.Range(3, 6);
 
 			//Select random sprite
 			ServerSelectRandomSprite();
@@ -159,17 +168,20 @@ namespace Objects.Research
 			if (AreaEffect == null)
 			{
 				chosenClass = PickClass();
-				AreaEffect = ArtifactDataSO.AreaEffects[(int)chosenClass].AreaArtifactEffectList.PickRandom();
+				AreaEffect = Instantiate(ArtifactDataSO.AreaEffects[(int)chosenClass].AreaArtifactEffectList.PickRandom());
 			}
 			if (InteractEffect == null)
 			{
 				chosenClass = PickClass();
-				InteractEffect = ArtifactDataSO.InteractEffects[(int)chosenClass].InteractArtifactEffectList.PickRandom();
+				InteractEffect = Instantiate(ArtifactDataSO.InteractEffects[(int)chosenClass].InteractArtifactEffectList.PickRandom());
 			}
 			if (DamageEffect == null)
 			{
 				chosenClass = PickClass();
-				DamageEffect = ArtifactDataSO.DamageEffect[(int)chosenClass].DamageArtifactEffectList.PickRandom();
+				var DamageEffectSO = ArtifactDataSO.DamageEffect[(int)chosenClass].DamageArtifactEffectList.PickRandom();
+				DamageEffect = Instantiate(DamageEffectSO);
+
+				forceWallDamageEffect = DamageEffectSO == forceWallDamageEffectSO;
 			}
 
 			if (AreaEffect.OverrideDormancy == true || DamageEffect.OverrideDormancy == true || InteractEffect.OverrideDormancy == true) isDormant = false;
@@ -212,6 +224,13 @@ namespace Objects.Research
 			// remove it from global artifacts registry
 			if (ServerSpawnedArtifacts.Contains(this))
 				ServerSpawnedArtifacts.Remove(this);
+
+			if (forceWallAreaEffect) ((ForcefieldAreaEffect)AreaEffect).TerminateObstructions(); //Ensures no forcewalls are left around when artifact is destroyed.
+			if (forceWallDamageEffect)
+			{
+				var forcefieldEffect = ((AreaEffectOnDamage)DamageEffect).GetAreaEffect();
+				((ForcefieldAreaEffect)forcefieldEffect).TerminateObstructions();
+			}
 		}
 
 		private void OnDisable()
@@ -294,6 +313,12 @@ namespace Objects.Research
 		}
 		private void TakeSample(HandApply interaction)
 		{
+			if(samplesTaken >= maxSamples)
+			{
+				Chat.AddWarningMsgFromServer(interaction.Performer.gameObject, "No more samples can be taken from artifact without destablisation!");
+				return;
+			}
+
 			ToolUtils.ServerUseToolWithActionMessages(interaction, 5f,
 				$"You begin extracting a sample from {gameObject.ExpensiveName()}...",
 				$"{interaction.Performer.ExpensiveName()} begins extracting a sample from {gameObject.ExpensiveName()}...",
@@ -303,7 +328,7 @@ namespace Objects.Research
 				{
 					GameObject sliver = Spawn.ServerPrefab(SliverPrefab, gameObject.AssumedWorldPosServer()).GameObject;
 					if (sliver.TryGetComponent<ArtifactSliver>(out var sliverComponent)) sliverComponent.SetUpValues(artifactData, ID + $":{(char)('a' + samplesTaken)}");
-
+					samplesTaken++;
 					DoDamageEffect();
 				});
 		}

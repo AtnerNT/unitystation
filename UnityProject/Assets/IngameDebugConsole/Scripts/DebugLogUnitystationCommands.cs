@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using AdminCommands;
 using UnityEngine;
 using UnityEditor;
 using Systems.Atmospherics;
 using Random = UnityEngine.Random;
 using DatabaseAPI;
 using HealthV2;
+using Learning;
 using Messages.Client;
 using Messages.Server;
 using Messages.Server.HealthMessages;
+using Mirror;
+using Objects.Engineering;
+using Objects.Lighting;
 using ScriptableObjects;
+using Systems.Electricity;
 using Systems.Score;
 using UI.Action;
 
@@ -21,6 +28,10 @@ namespace IngameDebugConsole
 	/// </summary>
 	public class DebugLogUnitystationCommands : MonoBehaviour
 	{
+		private static bool IsAdmin()
+		{
+			return PlayerList.Instance.IsClientAdmin;
+		}
 
 #if UNITY_EDITOR
 		[MenuItem("Tool/ConveyorBeltTool")]
@@ -39,11 +50,7 @@ namespace IngameDebugConsole
 				return;
 			}
 			//TODO : Add a check to see which gamemode the player is on currently once sandbox is in instead of locking this behind for admins only.
-			if (AdminCommands.AdminCommandsManager.IsAdmin(PlayerManager.LocalPlayerScript.PlayerInfo.Connection, out _) == false)
-			{
-				Logger.Log("This function can only be executed by admins.", Category.DebugConsole);
-				return;
-			}
+			if(IsAdmin() == false) return;
 			UIManager.BuildMenu.ShowConveyorBeltMenu();
 		}
 #if UNITY_EDITOR
@@ -51,30 +58,32 @@ namespace IngameDebugConsole
 #endif
 		public static void ShowScoreUI()
 		{
-			if (AdminCommands.AdminCommandsManager.IsAdmin(PlayerManager.LocalPlayerScript.PlayerInfo.Connection, out _) == false)
-			{
-				Logger.Log("This function can only be executed by admins.", Category.DebugConsole);
-				return;
-			}
-
+			if (IsAdmin() == false) return;
 			RoundEndScoreBuilder.Instance.CalculateScoresAndShow();
 		}
 
 		[ConsoleMethod("CloneSelf", "Allows user to test cloning quickly.")]
 		public static void CloneSelf()
 		{
-			if (AdminCommands.AdminCommandsManager.IsAdmin(PlayerManager.LocalPlayerScript.PlayerInfo.Connection, out _) == false)
-			{
-				Logger.Log("This function can only be executed by admins.", Category.DebugConsole);
-				return;
-			}
-
-			var mind = PlayerManager.LocalPlayerScript.mind;
-			var playerBody = PlayerSpawn.ServerClonePlayer(mind, mind.body.gameObject.transform.position.CutToInt()).GetComponent<LivingHealthMasterBase>();
+			if (IsAdmin() == false) return;
+			var mind = PlayerManager.LocalPlayerScript.Mind;
+			var playerBody = PlayerSpawn.RespawnPlayer(mind, mind.occupation, mind.CurrentCharacterSettings).GetComponent<LivingHealthMasterBase>();
 			playerBody.ApplyDamageAll(null, 2, AttackType.Internal, DamageType.Clone, false);
 		}
 
-		[ConsoleMethod("checkObjectivesStatus", "check the current status of your objectives")]
+		[ConsoleMethod("clear-protips", "Clears all saved states of protips.")]
+		public static void ClearAllProtips()
+		{
+			ProtipManager.Instance.ClearSaveState();
+		}
+
+		[ConsoleMethod("show-first-time-exp-screen", "Shows the player experience screen.")]
+		public static void ShowFirstTimeExpScreen()
+		{
+			UIManager.Instance.FirstTimePlayerExperienceScreen.SetActive(true);
+		}
+
+		[ConsoleMethod("check-objectives-status", "check the current status of your objectives")]
 		public static void CheckObjectivesStatus()
 		{
 			bool playerSpawned = PlayerManager.LocalPlayerObject != null;
@@ -83,14 +92,14 @@ namespace IngameDebugConsole
 				Logger.LogError("Player has not spawned yet to be able to check for their objectives!");
 				return;
 			}
-			if (PlayerManager.LocalPlayerScript.mind.IsAntag == false)
+			if (PlayerManager.LocalPlayerScript.Mind.IsAntag == false)
 			{
 				Logger.LogError("Player is not an antagonist!");
 				return;
 			}
 
 			Logger.Log("Current player objectives :");
-			foreach (var objective in PlayerManager.LocalPlayerScript.mind.GetAntag().Objectives)
+			foreach (var objective in PlayerManager.LocalPlayerScript.Mind.GetAntag().Objectives)
 			{
 				Logger.Log($"{objective.ObjectiveName} -> {objective.IsComplete()}");
 			}
@@ -313,8 +322,9 @@ namespace IngameDebugConsole
 		[MenuItem("Networking/Spawn dummy player")]
 #endif
 		[ConsoleMethod("spawn-dummy", "Spawn dummy player (Server)")]
-		private static void SpawnDummyPlayer() {
-			PlayerSpawn.ServerSpawnDummy();
+		private static void SpawnDummyPlayer()
+		{
+			PlayerSpawn.NewSpawnCharacterV2(OccupationList.Instance.Occupations.PickRandom(),  CharacterSheet.GenerateRandomCharacter());
 		}
 
 #if UNITY_EDITOR
@@ -325,7 +335,7 @@ namespace IngameDebugConsole
 		{
 			for (int i = 0; i < 20; i++)
 			{
-				PlayerSpawn.ServerSpawnDummy();
+				PlayerSpawn.NewSpawnCharacterV2(OccupationList.Instance.Occupations.PickRandom(),  CharacterSheet.GenerateRandomCharacter());
 			}
 		}
 
@@ -338,7 +348,7 @@ namespace IngameDebugConsole
 		{
 			for (int i = 0; i < 100; i++)
 			{
-				PlayerSpawn.ServerSpawnDummy();
+				PlayerSpawn.NewSpawnCharacterV2(OccupationList.Instance.Occupations.PickRandom(),  CharacterSheet.GenerateRandomCharacter());
 			}
 		}
 
@@ -385,7 +395,7 @@ namespace IngameDebugConsole
 		{
 			if (CustomNetworkManager.Instance._isServer)
 			{
-				PlayerSpawn.ServerRespawnPlayer(PlayerManager.LocalPlayerScript.mind);
+				PlayerSpawn.RespawnPlayer(PlayerManager.LocalPlayerScript.Mind,PlayerManager.LocalPlayerScript.Mind.occupation, PlayerManager.LocalPlayerScript.Mind.CurrentCharacterSettings);
 			}
 		}
 
@@ -708,6 +718,27 @@ namespace IngameDebugConsole
 			}
 
 			PlayerList.Instance.ProcessAdminEnableRequest(ServerData.UserID, userIDToPromote);
+		}
+
+		[ConsoleMethod("destroy-all-lights", "destroys all lights on the main station.")]
+		public static void DestroyAllLights()
+		{
+			if(IsAdmin() == false) return;
+			AdminCommandsManager.Instance.DestroyAllLights();
+		}
+
+		[ConsoleMethod("free-power", "gives free power to everything.")]
+		public static void SelfSuficeAllMachines()
+		{
+			if(IsAdmin() == false) return;
+			AdminCommandsManager.Instance.SelfSuficeAllMachines();
+		}
+
+		[ConsoleMethod("emergency-lights", "Turns on the emergency lights for all light fixtures on the staiton.")]
+		public static void ActivateEmergencyLights()
+		{
+			if(IsAdmin() == false) return;
+			AdminCommandsManager.Instance.TurnOnEmergencyLightsStationWide();
 		}
 	}
 }

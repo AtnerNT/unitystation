@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using HealthV2;
 using Player.Language;
 using UnityEngine;
 
-namespace HealthV2
+namespace Items.Implants.Organs
 {
 	public class Tongue : BodyPartFunctionality
 	{
@@ -10,6 +11,8 @@ namespace HealthV2
 
 		[SerializeField]
 		private List<LanguageSO> languages = new List<LanguageSO>();
+
+		public bool CannotSpeak {get; private set; }
 
 		public override void AddedToBody(LivingHealthMasterBase livingHealth)
 		{
@@ -22,12 +25,14 @@ namespace HealthV2
 			{
 				mobLanguages.LearnLanguage(language, true);
 			}
+			livingHealth.IsMute.RecordPosition(this, CannotSpeak);
+
 		}
 
 		public override void RemovedFromBody(LivingHealthMasterBase livingHealth)
 		{
 			if(CustomNetworkManager.IsServer == false) return;
-
+			livingHealth.IsMute.RemovePosition(this);
 			foreach (var language in languages)
 			{
 				//Don't remove the language if it is in the default list
@@ -37,6 +42,15 @@ namespace HealthV2
 
 				//Can no longer speak, but can still understand
 				mobLanguages.RemoveLanguage(language);
+			}
+		}
+
+		public void SetCannotSpeak(bool inValue)
+		{
+			CannotSpeak = inValue;
+			if (RelatedPart.HealthMaster != null)
+			{
+				RelatedPart.HealthMaster.IsMute.RecordPosition(this, CannotSpeak);
 			}
 		}
 	}

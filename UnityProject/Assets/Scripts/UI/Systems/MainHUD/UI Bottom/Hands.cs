@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HealthV2;
+using Items.Implants.Organs;
 
 namespace Player
 {
@@ -53,9 +54,9 @@ namespace Player
 
 
 
-			PlayerManager.LocalPlayerScript.playerNetworkActions.CmdSetActiveHand(gamebodypPart.NetId(), namedSlot);
-			PlayerManager.LocalPlayerScript.playerNetworkActions.activeHand = gamebodypPart;
-			PlayerManager.LocalPlayerScript.playerNetworkActions.CurrentActiveHand = namedSlot;
+			PlayerManager.LocalPlayerScript.PlayerNetworkActions.CmdSetActiveHand(gamebodypPart.NetId(), namedSlot);
+			PlayerManager.LocalPlayerScript.PlayerNetworkActions.activeHand = gamebodypPart;
+			PlayerManager.LocalPlayerScript.PlayerNetworkActions.CurrentActiveHand = namedSlot;
 
 			// If player was using both hands - flip images back
 			if (UsingBothHands)

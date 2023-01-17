@@ -66,7 +66,7 @@ namespace Objects
 				sameSquare = false;
 
 				bool canPush = false;
-				var playerPushPull = playerScript.objectPhysics;
+				var playerPushPull = playerScript.ObjectPhysics;
 				if (side == NetworkSide.Server)
 				{
 					canPush = playerPushPull.CanPush(dir);
@@ -84,7 +84,7 @@ namespace Objects
 		public bool WillInteract(MouseDrop interaction, NetworkSide side)
 		{
 			if (DefaultWillInteract.Default(interaction, side,
-					Validations.CheckState(x => x.CanBuckleOthers)) == false) return false;
+					Validations.CheckState(x => x.CanBuckleOthers), AllowTelekinesis: false) == false) return false;
 
 			if (Validations.HasComponent<MovementSynchronisation>(interaction.DroppedObject) == false) return false;
 
@@ -123,7 +123,7 @@ namespace Objects
 
 			if (sameSquare == false)
 			{
-				playerScript.objectPhysics.AppearAtWorldPositionServer(transform.position);
+				playerScript.ObjectPhysics.AppearAtWorldPositionServer(transform.position);
 			}
 
 			BucklePlayer(playerScript);
@@ -135,10 +135,8 @@ namespace Objects
 		public void BucklePlayer(PlayerScript playerScript)
 		{
 			SoundManager.PlayNetworkedAtPos(CommonSounds.Instance.Click01, gameObject.AssumedWorldPosServer(), sourceObj: gameObject);
-			if (forceLayingDown)
-			{
-				playerScript.RegisterPlayer.ServerLayDown();
-			}
+
+			if (forceLayingDown && playerScript.RegisterPlayer.IsLayingDown == false) playerScript.RegisterPlayer.ServerSetIsStanding(false);		
 
 			objectPhysics.BuckleObjectToThis(playerScript.playerMove);
 			occupiedSpriteHandler.OrNull()?.ChangeSprite(0);

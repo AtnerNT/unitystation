@@ -156,6 +156,8 @@ namespace Systems.Ai
 		private void Awake()
 		{
 			playerScript = GetComponent<PlayerScript>();
+			playerScript.OnActionEnterPlayerControl += PlayerEnterBody;
+
 			cooldowns = GetComponent<HasCooldowns>();
 			lineRenderer = GetComponentInChildren<LineRenderer>();
 		}
@@ -180,7 +182,6 @@ namespace Systems.Ai
 			//Set new vessel
 			ServerSetNewVessel(newVesselObject);
 
-			playerScript.SetPermanentName(playerScript.characterSettings.AiName);
 			newVesselObject.GetComponent<AiVessel>().SetLinkedPlayer(this);
 
 			isCarded = false;
@@ -241,10 +242,10 @@ namespace Systems.Ai
 			}
 		}
 
-		public override void OnStartLocalPlayer()
+		public void PlayerEnterBody()
 		{
-			base.OnStartLocalPlayer();
-
+			if (hasAuthority == false) return;
+			playerScript.Mind.SetPermanentName(playerScript.characterSettings.AiName);
 			Init();
 
 			SyncCore(IDvesselObject, IDvesselObject);
@@ -269,6 +270,7 @@ namespace Systems.Ai
 			}
 		}
 
+
 		/// <summary>
 		/// Sync is used to set up client and to reset stuff for rejoining client
 		/// This is only sync'd to the client which owns this object, due to setting on script
@@ -280,7 +282,7 @@ namespace Systems.Ai
 			if(vesselObject == null) return;
 
 			//Something weird with headless and local host triggering the sync even though its set to owner
-			if (CustomNetworkManager.IsHeadless || PlayerManager.LocalPlayerObject != gameObject) return;
+			if (CustomNetworkManager.IsHeadless || hasAuthority == false) return;
 
 			Init();
 			aiUi.OrNull()?.SetUp(this);
@@ -1254,7 +1256,7 @@ namespace Systems.Ai
 			}
 
 			//Transfer player to ghost
-			PlayerSpawn.ServerGhost(playerScript.mind);
+			playerScript.Mind.Ghost();
 
 			//Despawn this player object
 			_ = Despawn.ServerSingle(gameObject);

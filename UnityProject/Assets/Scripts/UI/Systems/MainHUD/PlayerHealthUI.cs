@@ -101,48 +101,20 @@ public class PlayerHealthUI : MonoBehaviour
 			EnableAlwaysVisible();
 		}
 
-		float temperature = PlayerManager.LocalPlayerScript.playerHealth.RespiratorySystem.Temperature;
+		var temperature = PlayerManager.LocalPlayerScript.playerHealth.HealthStateController.Temperature;
 
-		if (temperature < 110)
+		if (PlayerManager.LocalPlayerScript.playerHealth.FireStacks > 0)
 		{
-			SetSpecificVisibility(true, coldAlert);
-		}
-		else
-		{
-			SetSpecificVisibility(false, coldAlert);
-		}
-
-		if (PlayerManager.LocalPlayerScript.playerHealth.FireStacks > 0 || temperature > 510)
-		{
-			SetSpecificVisibility(true, heatAlert);
-		}
-		else
-		{
-			SetSpecificVisibility(false, heatAlert);
+			temperature = TemperatureAlert.TooHot;
 		}
 
 
-		if (temperature > 260 && temperature < 360)
-		{
-			SetSpecificVisibility(false, temperatureAlert.gameObject);
-		}
-		else
-		{
-			SetSpecificVisibility(true, temperatureAlert.gameObject);
-			temperatureAlert.SetTemperatureSprite(temperature);
-		}
+		temperatureAlert.SetTemperatureSprite(temperature);
 
-		float pressure = PlayerManager.LocalPlayerScript.playerHealth.RespiratorySystem.Pressure;
+		var pressure = PlayerManager.LocalPlayerScript.playerHealth.HealthStateController.Pressure;
 
-		if (pressure > 50 && pressure < 325)
-		{
-			SetSpecificVisibility(false, pressureAlert.gameObject);
-		}
-		else
-		{
-			SetSpecificVisibility(true, pressureAlert.gameObject);
-			pressureAlert.SetPressureSprite(pressure);
-		}
+		pressureAlert.SetPressureSprite(pressure);
+
 
 		SetSpecificVisibility(PlayerManager.LocalPlayerScript.playerHealth.RespiratorySystem.IsSuffocating, oxygenAlert);
 
@@ -263,7 +235,7 @@ public class PlayerHealthUI : MonoBehaviour
 						damageColor = destroyedBodyPartColor;
 						break;
 				}
-				if (IsLocalPlayer(bodyPart))
+				if (HasAuthority(bodyPart))
 				{
 					bodyPartListeners[i].SetDamageColor(damageColor);
 					bodyPartListeners[i].SetBodyPartColor(bodyPartColor);
@@ -277,11 +249,9 @@ public class PlayerHealthUI : MonoBehaviour
 				}
 			}
 		}
-		bool IsLocalPlayer(BodyPart BbodyPart)
+		bool HasAuthority(BodyPart bbodyPart)
 		{
-			var Player = BbodyPart.HealthMaster as PlayerHealthV2;
-			if (Player == null) return false;
-			return PlayerManager.LocalPlayerScript == Player.playerScript;
+			return bbodyPart.HealthMaster.hasAuthority;
 		}
 	}
 }

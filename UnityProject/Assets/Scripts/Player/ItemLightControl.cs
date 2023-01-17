@@ -7,7 +7,6 @@ using Mirror;
 [Serializable]
 public class PlayerLightData
 {
-	public float Intensity = 0.0f;
 	public Color Colour;
 	//todo Make it so badmins can Mess around with the sprite so It can be set to anything they desire
 	//public Sprite Sprite;
@@ -70,7 +69,6 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 	{
 		PlayerLightData = new PlayerLightData()
 		{
-			Intensity = Intensity,
 			Colour = Colour,
 			EnumSprite = EnumSprite,
 			Size = Size,
@@ -78,6 +76,7 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 		CommonComponents = this.GetComponent<CommonComponents>();
 		CommonComponents.RegisterTile.OnAppearClient.AddListener(StateHiddenChange);
 		CommonComponents.RegisterTile.OnDisappearClient.AddListener(StateHiddenChange);
+		CommonComponents.UniversalObjectPhysics.OnVisibilityChange += StateHiddenChange;
 
 		if (objectLightEmission == null)
 		{
@@ -138,7 +137,7 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 		{
 			//caches the intensity just incase and sets intensity
 			CachedIntensity = intensity;
-			PlayerLightData.Intensity = intensity;
+			PlayerLightData.Colour.a = intensity;
 		}
 		else
 		{
@@ -161,6 +160,7 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 
 	private void SyncState(bool oldState, bool newState)
 	{
+		IsOn = newState;
 		if (CommonComponents.UniversalObjectPhysics.IsVisible == false)
 		{
 			objectLightEmission.SetActive(newState);
@@ -171,7 +171,7 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 	{
 		if (IsOn)
 		{
-			PlayerLightData.Intensity = CachedIntensity;
+			PlayerLightData.Colour.a = CachedIntensity;
 			LightEmission.AddLight(PlayerLightData);
 			LightToggleIntensity();
 			objectLightEmission.SetActive(true);
@@ -188,11 +188,11 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 	{
 		if (CommonComponents.UniversalObjectPhysics.IsVisible == false)
 		{
-			objectLightEmission.SetActive(IsOn);
+			objectLightEmission.SetActive(false);
 		}
 		else
 		{
-			objectLightEmission.SetActive(false);
+			objectLightEmission.SetActive(IsOn);
 		}
 	}
 
@@ -201,6 +201,6 @@ public class ItemLightControl : NetworkBehaviour, IServerInventoryMove
 	/// </summary>
 	private void LightToggleIntensity()
 	{
-		PlayerLightData.Intensity = CachedIntensity;
+		PlayerLightData.Colour.a = CachedIntensity;
 	}
 }
