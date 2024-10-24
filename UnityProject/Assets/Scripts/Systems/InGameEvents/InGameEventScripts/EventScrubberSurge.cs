@@ -29,6 +29,10 @@ namespace InGameEvents
 		[SerializeField]
 		private List<ReagentMix> dispersionMix = default;
 
+		[Tooltip("The probability that a dispersion agent will be formed")]
+		[SerializeField]
+		private float dispenseProbability = 0.15f;
+
 		[FormerlySerializedAs("RareDispenseProbability")]
 		[Tooltip("The  probability that a rare dispersionAgents will be chosen")]
 		[SerializeField]
@@ -86,16 +90,13 @@ namespace InGameEvents
 			var reagentMix = new ReagentMix();
 			lock (reagentMix.reagents)
 			{
-				if (ShouldDispenseRareDispersionAgents())
+				if (Random.Range(0f, 1f) <= dispenseProbability)
 				{
-					reagentMix.Add(rareDispersionMix.PickRandom());
-				}
-				else
-				{
-					reagentMix.Add(dispersionMix.PickRandom());
+					if (ShouldDispenseRareDispersionAgents()) reagentMix.Add(rareDispersionMix.PickRandom());
+					else reagentMix.Add(dispersionMix.PickRandom());
 				}
 
-				reagentMix.reagents.m_dict.Add(ChemistryReagentsSO.Instance.AllChemistryReagents.PickRandom(), 75f);
+				reagentMix.reagents.m_dict.Add(ChemistryReagentsSO.Instance.AllChemistryReagents.PickRandom(), 15f);
 			}
 
 
