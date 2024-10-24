@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   overrideDisplayName: Explosion
   potency: 1
-  explosionType: 0
+  <explosionType>k__BackingField: 0
   Delay: 0
