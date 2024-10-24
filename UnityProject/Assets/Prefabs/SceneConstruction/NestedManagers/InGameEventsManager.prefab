@@ -295,7 +295,7 @@ MonoBehaviour:
   StartTimer: 5
   EndTimer: 0
   EventType: 1
-  ChanceToHappen: 30
+  ChanceToHappen: 10
   MinPlayersToTrigger: 0
   parametersPageType: 0
   FakeEvent: 0
@@ -309,7 +309,7 @@ MonoBehaviour:
       m_keys:
       - {fileID: 11400000, guid: 2fe711bafe5c109f8b44185374a5071d, type: 2}
       m_values:
-      - 25
+      - 10
     reagentKeys: []
   - temperature: 648.15
     reagents:
@@ -317,9 +317,10 @@ MonoBehaviour:
       - {fileID: 11400000, guid: 61965072f426692ab9f3f996eedfd500, type: 2}
       - {fileID: 11400000, guid: 522665e55a63647f6a9959f4b0a52c31, type: 2}
       m_values:
-      - 12.5
-      - 12.5
+      - 5
+      - 5
     reagentKeys: []
+  dispenseProbability: 0.15
   rareDispenseProbability: 0.005
   rareDispersionMix:
   - temperature: 648.15
