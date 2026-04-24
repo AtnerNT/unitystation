@@ -11,13 +11,13 @@ GameObject:
   - component: {fileID: 7023396407017301390}
   - component: {fileID: 8690229326222893230}
   - component: {fileID: 2847870594669773660}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: StatusIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7023396407017301390
 Transform:
   m_ObjectHideFlags: 0
@@ -53,15 +53,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 732f3c8aabedeb54d95e72403239ed1a, type: 2}
   - {fileID: 11400000, guid: abad0fc424fd15448ab6c518b8af74e2, type: 2}
   - {fileID: 11400000, guid: a3b478722c9113a44934cc53746db83b, type: 2}
-  PresentSpriteSet: {fileID: 11400000, guid: a3b478722c9113a44934cc53746db83b, type: 2}
+  InitialPresentSpriteSet: {fileID: 11400000, guid: a3b478722c9113a44934cc53746db83b,
+    type: 2}
   randomInitialSprite: 0
+  spriteRenderer: {fileID: 2847870594669773660}
   doReverseAnimation: 0
   pushTextureOnStartUp: 1
   initialVariantIndex: 0
+  InitialColour: {r: 1, g: 1, b: 1, a: 1}
   palette: []
-  OnSpriteUpdated:
-    m_PersistentCalls:
-      m_Calls: []
+  initialSortingOrder: -1
+  initialSortingLayerName: 
 --- !u!212 &2847870594669773660
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -79,10 +81,13 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c122dd7923e087c48bf08da9da455514, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,13 +130,13 @@ GameObject:
   - component: {fileID: 4027011960341475273}
   - component: {fileID: 1413903687203588568}
   - component: {fileID: 3436643012773090244}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Implanted
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4027011960341475273
 Transform:
   m_ObjectHideFlags: 0
@@ -163,15 +168,17 @@ MonoBehaviour:
   SubCatalogue:
   - {fileID: 11400000, guid: e4eb608982005d94e9d3ab683cd83d7f, type: 2}
   - {fileID: 11400000, guid: 824bc28ad4d94fb4da75a98483250f71, type: 2}
-  PresentSpriteSet: {fileID: 11400000, guid: 824bc28ad4d94fb4da75a98483250f71, type: 2}
+  InitialPresentSpriteSet: {fileID: 11400000, guid: 824bc28ad4d94fb4da75a98483250f71,
+    type: 2}
   randomInitialSprite: 0
+  spriteRenderer: {fileID: 3436643012773090244}
   doReverseAnimation: 0
   pushTextureOnStartUp: 1
   initialVariantIndex: 0
+  InitialColour: {r: 1, g: 1, b: 1, a: 1}
   palette: []
-  OnSpriteUpdated:
-    m_PersistentCalls:
-      m_Calls: []
+  initialSortingOrder: -1
+  initialSortingLayerName: 
 --- !u!212 &3436643012773090244
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -189,10 +196,13 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c122dd7923e087c48bf08da9da455514, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -234,7 +244,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2074338894421403608}
   - component: {fileID: 2774544434548301542}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: HUDSecurity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -285,13 +295,13 @@ GameObject:
   - component: {fileID: 607734796324817558}
   - component: {fileID: 174863769346172751}
   - component: {fileID: 519543029209916075}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: JobIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &607734796324817558
 Transform:
   m_ObjectHideFlags: 0
@@ -358,15 +368,18 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6d6ec370ce48fd741827f3f961045fb2, type: 2}
   - {fileID: 11400000, guid: e416313c0fe970a49b95ef9a455b5bca, type: 2}
   - {fileID: 11400000, guid: 1cf77ef2623b89d4eaacfe38576c20f9, type: 2}
-  PresentSpriteSet: {fileID: 11400000, guid: c7dfd4bf41416f74da18305360ee1fe2, type: 2}
+  - {fileID: 11400000, guid: e2b82e7bde52ae745a83e6b25a840aa2, type: 2}
+  InitialPresentSpriteSet: {fileID: 11400000, guid: c7dfd4bf41416f74da18305360ee1fe2,
+    type: 2}
   randomInitialSprite: 0
+  spriteRenderer: {fileID: 519543029209916075}
   doReverseAnimation: 0
   pushTextureOnStartUp: 1
   initialVariantIndex: 0
+  InitialColour: {r: 1, g: 1, b: 1, a: 1}
   palette: []
-  OnSpriteUpdated:
-    m_PersistentCalls:
-      m_Calls: []
+  initialSortingOrder: -1
+  initialSortingLayerName: 
 --- !u!212 &519543029209916075
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -384,10 +397,13 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c122dd7923e087c48bf08da9da455514, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

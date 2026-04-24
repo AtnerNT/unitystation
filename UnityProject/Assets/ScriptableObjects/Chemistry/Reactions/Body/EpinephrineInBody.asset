@@ -35,8 +35,8 @@ MonoBehaviour:
     m_keys: []
     m_values: 
   overrideDisplayName: 
-  indexInSingleton: 9
-  ReagentMetabolismMultiplier: 4
+  indexInSingleton: 11
+  ReagentMetabolismMultiplier: 1
   InternalAllRequired: []
   InternalBlacklist: []
   ExternalAllRequired: []
@@ -44,8 +44,24 @@ MonoBehaviour:
   DamageEffect: 3
   AttackType: 10
   AttackBodyPartPerOneU: -100
-  CanOverdose: 0
-  ConcentrationBloodOverdose: 20
+  CanOverdose: 1
+  ConcentrationBloodOverdose: 30
   OverdoseDamageMultiplierNew: 1
-  MultiEffect: 0
-  Effects: []
+  OverdoseEffects:
+  - DamageEffect: 2
+    AttackType: 10
+    EffectPerOne: 5
+  MultiEffect: 1
+  Effects:
+  - DamageEffect: 3
+    AttackType: 10
+    EffectPerOne: -100
+  - DamageEffect: 0
+    AttackType: 10
+    EffectPerOne: -0.5
+  - DamageEffect: 1
+    AttackType: 10
+    EffectPerOne: -0.3
+  - DamageEffect: 5
+    AttackType: 10
+    EffectPerOne: -2

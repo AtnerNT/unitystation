@@ -17,4 +17,8 @@ MonoBehaviour:
   - MainStations/MiniStation.json
   - MainStations/FallStation.json
   - MainStations/StarshipStation.json
+  - MainStations/GateStation.json
+  - MainStations/OutpostStation.json
+  - MainStations/CaveStation.json
   mapsConfig: maps.json
+  AsteroidListOverride: {fileID: 0}

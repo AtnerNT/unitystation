@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEngine.UI;
+using US13.UI;
+using US13.UI.Core;
 
 public class UpdateTextures : MonoBehaviour
 {
@@ -75,9 +77,47 @@ public class UpdateTextures : MonoBehaviour
             }
         }
 
+        Component[] componentsWithSprite = Resources.FindObjectsOfTypeAll<Component>();
+        foreach (Component component in componentsWithSprite)
+        {
+	        ToggleButton ToggleButton = component.GetComponent<ToggleButton>();
+
+	        if (ToggleButton != null && ToggleButton.GetComponent<ClickyButton>() == null)
+	        {
+		        ToggleButton.gameObject.AddComponent<ClickyButton>();
+	        }
+
+
+	        var ToggleButtons = component.GetComponentsInChildren<ToggleButton>();
+	        foreach (var ToggleButtonA in ToggleButtons)
+	        {
+		        if (ToggleButtonA != null && ToggleButtonA.GetComponent<ClickyButton>() == null)
+		        {
+			        ToggleButtonA.gameObject.AddComponent<ClickyButton>();
+		        }
+	        }
+
+	        Button Button = component.GetComponent<Button>();
+
+	        if (Button != null && Button.GetComponent<ClickyButton>() == null)
+	        {
+		        Button.gameObject.AddComponent<ClickyButton>();
+	        }
+
+
+	        var Buttons = component.GetComponentsInChildren<Button>();
+	        foreach (var Buttona in Buttons)
+	        {
+		        if (Buttona != null && Buttona.GetComponent<ClickyButton>() == null)
+		        {
+			        Buttona.gameObject.AddComponent<ClickyButton>();
+		        }
+	        }
+        }
+
 
         // Update Sprites used by components (e.g., Image)
-        Component[] componentsWithSprite = Resources.FindObjectsOfTypeAll<Component>();
+        componentsWithSprite = Resources.FindObjectsOfTypeAll<Component>();
         foreach (Component component in componentsWithSprite)
         {
 	        Image image = component.GetComponent<Image>();

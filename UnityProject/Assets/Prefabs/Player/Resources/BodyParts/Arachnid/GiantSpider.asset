@@ -58,7 +58,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 106659714067857409
-      type: {class: ReagentPoolSystem, ns: HealthV2.Living.PolymorphicSystems, asm: Assets}
+      type: {class: ReagentPoolSystem, ns: US13.HealthV2.Living.PolymorphicSystems, asm: Assets}
       data:
         Base: {fileID: 0}
         BloodPool:
@@ -69,7 +69,7 @@ MonoBehaviour:
           reagentKeys: []
         StartingBlood: 500
         NormalBlood: 500
-        bloodReagent: {fileID: 11400000, guid: efcde740e9b85074485bcd68a7a21816, type: 2}
+        bloodReagent: {fileID: 11400000, guid: c7943c0995bc04a49b55b22064796666, type: 2}
         PumpingDevices: []
         TempBloodReservoir:
           temperature: 273.15

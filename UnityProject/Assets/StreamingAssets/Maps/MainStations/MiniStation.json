@@ -47370,6 +47370,9 @@
               },
               {
                 "Tel": "Plating"
+              },
+              {
+                "Tel": "Table"
               }
             ]
           },
@@ -131363,6 +131366,12 @@
             }
           },
           {
+            "GitID": "PlantDNAManipulator_72┼56┼0┼",
+            "PrefabID": "PlantDNAManipulator",
+            "Name": "New PlantDNAManipulator (1)",
+            "LocalPRS": "72┼56┼0┼"
+          },
+          {
             "GitID": "66f05879999b49141bbfc4e0fdc9903a_72┼59┼0┼",
             "PrefabID": "66f05879999b49141bbfc4e0fdc9903a",
             "Name": "WaterTankHighCapacity (1)",
@@ -133977,10 +133986,6 @@
                   "ClassID": "ReagentContainer@0",
                   "Data": [
                     {
-                      "Name": "possibleTransferAmounts#0",
-                      "Data": "#removed#"
-                    },
-                    {
                       "Name": "maxCapacity",
                       "Data": "100"
                     },
@@ -133990,6 +133995,10 @@
                     },
                     {
                       "Name": "initialReagentMix@reagents#Water",
+                      "Data": "#removed#"
+                    },
+                    {
+                      "Name": "possibleTransferAmounts#0",
                       "Data": "#removed#"
                     }
                   ]
@@ -139017,6 +139026,18 @@
             "LocalPRS": "79.22┼55┼0┼"
           },
           {
+            "GitID": "0af3fb6f8543f0b4b914da932bd18ea0_79.52┼70.27┼0┼",
+            "PrefabID": "0af3fb6f8543f0b4b914da932bd18ea0",
+            "Name": "CyborgRightArm (2)",
+            "LocalPRS": "79.52┼70.27┼0┼"
+          },
+          {
+            "GitID": "0af3fb6f8543f0b4b914da932bd18ea0_79.54┼70.03┼0┼",
+            "PrefabID": "0af3fb6f8543f0b4b914da932bd18ea0",
+            "Name": "CyborgRightArm (1)",
+            "LocalPRS": "79.54┼70.03┼0┼"
+          },
+          {
             "GitID": "b998cf4e42b95ec4fbbb893c889010e8_79.6┼93.07┼0┼",
             "PrefabID": "b998cf4e42b95ec4fbbb893c889010e8",
             "Name": "NuclearDisk (1)",
@@ -139038,6 +139059,18 @@
                 }
               ]
             }
+          },
+          {
+            "GitID": "0af3fb6f8543f0b4b914da932bd18ea0_79.69┼70.27┼0┼",
+            "PrefabID": "0af3fb6f8543f0b4b914da932bd18ea0",
+            "Name": "CyborgRightArm (4)",
+            "LocalPRS": "79.69┼70.27┼0┼"
+          },
+          {
+            "GitID": "0af3fb6f8543f0b4b914da932bd18ea0_79.74┼70.07┼0┼",
+            "PrefabID": "0af3fb6f8543f0b4b914da932bd18ea0",
+            "Name": "CyborgRightArm (3)",
+            "LocalPRS": "79.74┼70.07┼0┼"
           },
           {
             "GitID": "b83b68cfa4a201748aeeece963a989c3_79.98┼69.95┼0┼",

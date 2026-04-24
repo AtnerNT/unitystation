@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Geneticist
   m_EditorClassIdentifier: 
   jobType: 21
+  jobCategory: 3
   isCrewmember: 1
   lateSpawnIsArrivals: 1
   inventoryPopulator: {fileID: 11400000, guid: e466621770d154019a1b0bf736a0972b, type: 2}
@@ -24,7 +25,7 @@ MonoBehaviour:
   issuedClearance: 0d0000000900000005000000060000002a00000007000000
   issuedLowPopClearance: 
   spells: []
-  progress: 10
+  progress: 25
   choiceColor: {r: 0.086908154, g: 0.648544, b: 0.8773585, a: 1}
   previewSprite: {fileID: 21300000, guid: 5e4511dcedb550c47b20c5f7438583b9, type: 3}
   displayName: Geneticist

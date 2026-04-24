@@ -15,7 +15,7 @@ MonoBehaviour:
   ingredients:
     m_keys:
     - {fileID: 11400000, guid: c4e931cdd4b041652928e77065466e6b, type: 2}
-    m_values: 05000000
+    m_values: 01000000
   useExactAmounts: 0
   MinimumReactionMultiple: 0
   catalysts:
@@ -35,8 +35,8 @@ MonoBehaviour:
     m_keys: []
     m_values: 
   overrideDisplayName: 
-  indexInSingleton: 14
-  ReagentMetabolismMultiplier: 4
+  indexInSingleton: 17
+  ReagentMetabolismMultiplier: 1056
   InternalAllRequired:
   - {fileID: 11400000, guid: cf7011331adb47d4880a8f62edf3259d, type: 2}
   InternalBlacklist: []
@@ -48,6 +48,7 @@ MonoBehaviour:
   CanOverdose: 1
   ConcentrationBloodOverdose: 20
   OverdoseDamageMultiplierNew: 1
+  OverdoseEffects: []
   MultiEffect: 0
   Effects: []
   EmoteEffects:

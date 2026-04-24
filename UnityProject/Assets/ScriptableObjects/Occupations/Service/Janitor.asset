@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Janitor
   m_EditorClassIdentifier: 
   jobType: 24
+  jobCategory: 6
   isCrewmember: 1
   lateSpawnIsArrivals: 1
   inventoryPopulator: {fileID: 11400000, guid: 52e268511df7f4fdab75dc90b15f3b09, type: 2}
@@ -24,7 +25,7 @@ MonoBehaviour:
   issuedClearance: 0d000000190000000c000000
   issuedLowPopClearance: 
   spells: []
-  progress: 70
+  progress: 75
   choiceColor: {r: 0.41251338, g: 0.79448867, b: 0.8490566, a: 1}
   previewSprite: {fileID: 21300000, guid: bc48f7f03e7e02946afb2459f9fc38ab, type: 3}
   displayName: Janitor
